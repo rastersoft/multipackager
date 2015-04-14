@@ -148,6 +148,7 @@ class debian (multipackager_module.package_base.package_base):
             dependencies.append("python3")
             dependencies.append("python3-stdeb")
             dependencies.append("python3-all")
+            dependencies.append("python-all")
             dependencies.append("fakeroot")
         else:
             self.debian_path = self.check_path_in_builds(self.build_path)
@@ -202,9 +203,10 @@ class debian (multipackager_module.package_base.package_base):
             files = os.listdir(destination_dir)
             for f in files:
                 if f[-4:] == ".deb":
-                    if (os.path.exists(os.path.join(os.getcwd(),f))):
-                        os.remove(os.path.join(os.getcwd(),f))
-                    shutil.move(os.path.join(destination_dir,f), os.path.join(os.getcwd,"{:s}.{:s}{:s}.deb".format(f[:-4],self.distro_type,self.distro_name)))
+                    final_name = os.path.join(os.getcwd(),"{:s}.{:s}{:s}.deb".format(f[:-4],self.distro_type,self.distro_name))
+                    if (os.path.exists(final_name)):
+                        os.remove(final_name)
+                    shutil.move(os.path.join(destination_dir,f), final_name)
                     return False
             return True
 
