@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#: ../src/multipackager_module/debian.py:36
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-04-14 01:04+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/multipackager.py:46
+msgid ""
+"\n"
+"This program must be run as root\n"
+msgstr ""
+
+#: ../src/multipackager.py:71
+msgid "Error when creating the working environment"
+msgstr ""
+
+#: ../src/multipackager.py:84
+msgid "Built packages:"
+msgstr ""
+
+#: ../src/multipackager.py:88
+msgid "Built packages: None"
+msgstr ""
+
+#: ../src/multipackager.py:90
+msgid "Skipped packages:"
+msgstr ""
+
+#: ../src/multipackager.py:94
+msgid "Skipped packages: none"
+msgstr ""
+
+#: ../src/multipackager.py:107
+msgid "The specified CHROOT environment at {:s} doesn't exists. Aborting."
+msgstr ""
+
+#: ../src/multipackager.py:126
+msgid "The project folder exists; launching the shell without copying data"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:40
+msgid "Generating the environment for {:s}"
+msgstr ""
+
+#. error!!!
+#: ../src/multipackager_module/package_base.py:44
+msgid "Generating a backup for {:s}"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:56
+msgid "Updating {:s}"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:73
+#: ../src/multipackager_module/package_base.py:90
+msgid "Creating working copy of {:s}"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:146
+msgid "Unknown build system"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:187
+msgid "Launching {:s}"
+msgstr ""
+
+#: ../src/multipackager_module/debian.py:124
+msgid "There is no DEBIAN/UBUNTU folder with the package specific data"
+msgstr ""
