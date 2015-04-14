@@ -144,13 +144,12 @@ class debian (multipackager_module.package_base.package_base):
         dependencies = []
 
         if (os.path.exists(os.path.join(self.build_path,"setup.py"))): # it is a python package
-            add_depend = True
             control_path = os.path.join(self.build_path,"stdeb.cfg")
+            dependencies.append("python3")
             dependencies.append("python3-stdeb")
             dependencies.append("python3-all")
             dependencies.append("fakeroot")
         else:
-            add_depend = False
             self.debian_path = self.check_path_in_builds(self.build_path)
             if self.debian_path == None:
                 print (_("There is no DEBIAN/UBUNTU folder with the package specific data"))
@@ -163,16 +162,8 @@ class debian (multipackager_module.package_base.package_base):
         print("Control: "+control_path)
         f = open (control_path,"r")
         for line in f:
-            if line[:14] == "Build-Depends:":
-                tmp = line[14:].split(",")
-                for element in tmp:
-                    pos = element.find("(") # remove version info
-                    if (pos != -1):
-                        element = element[:pos]
-                    dependencies.append(element.strip())
-                continue
-            if (add_depend) and (line[:7] == "Depends"):
-                tmp = line[7:].strip()
+            if (line[:13] == "Build-Depends"):
+                tmp = line[13:].strip()
                 if (tmp[0] == ':') or (tmp[0] == '='):
                     tmp = tmp[1:].strip()
                 tmp = tmp.split(",")

@@ -1,13 +1,15 @@
-MULTIPACKAGER
-=============
+# MULTIPACKAGER #
 
 Simplifies the creation of Linux packages for multiple architectures and distributions.
 
-Multipackager is a program that aims to simplify the creation of packages for linux distributions. To do so, it automatizes the creation of virtual machines with specific distributions, versions and architectures, and the compilation and packaging process for each one. It allows to create packages for i386 and amd64 for any available version of Debian and Ubuntu.
+Multipackager is a program that aims to simplify the creation of packages for
+linux distributions. To do so, it automatizes the creation of virtual machines
+with specific distributions, versions and architectures, and the compilation
+and packaging process for each one. It allows to create packages for i386 and
+amd64 for any available version of Debian and Ubuntu.
 
 
-INSTALATION
------------
+## INSTALATION ##
 
 Multipackager uses python setup, so just do:
 
@@ -22,8 +24,7 @@ Multipackager have the following dependencies:
 Debootstrap is used to generate the basic CHROOT environment for the distros; systemd is needed to launch the virtual machines and keep them isolated (something that the basic CHROOT can't do).
 
 
-HOW DOES IT WORK?
------------------
+## HOW DOES IT WORK? ##
 
 Multipackager uses Debootstrap to automatically download and generate several virtual machines for the desired distros, versions and architectures. After that, it automatically compiles the specified project's source code for each one, and creates the corresponding package.
 
@@ -45,16 +46,15 @@ The created packages are stored in the current folder. Also, if a package alread
 This process is repeated for each of the triplets configured in the configuration file.
 
 
-THE CONFIGURATION FILE
-----------------------
+## THE CONFIGURATION FILE ##
 
 The configuration file is stored, by default, at **/etc/multipackager/config.cfg**, and is a file with the following structure:
 
-```    distro: type name architecture
-    distro...
-    cache_path: path
-    working_path: path
-    shell: path/program```
+    distro: type name architecture 
+    distro... 
+    cache_path: path 
+    working_path: path 
+    shell: path/program
 
 All the lines are optional.
 
@@ -67,8 +67,8 @@ The **working_path** specifies where to store the working virtual machines. If t
 The **shell** specifies which shell to use when launching a manual environment (more on this later). By default it is **/bin/bash**.
 
 
-PREPARING THE PROJECT
----------------------
+## PREPARING THE PROJECT ##
+
 
 Multipackager needs some folders and files already available in the project folder. The first and most important is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control** file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends** and **Build-Depends** fields to allow multipackager to install the needed packages during the build process. Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with **Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified.
 
@@ -89,8 +89,7 @@ In order to build the project itself and do the final installation, multipackage
  * finally, if a file **Makefile** exists in the project folder, multipackager will presume that it is a classic Makefile project, and will run **make && make PREFIX=/usr DESTDIR=/install_root install** to build the package and install it in the **install_root** folder.
 
 
-USAGE
------
+## USAGE ##
 
 Launching multipackager.py from a command line shows this help:
 
@@ -119,13 +118,9 @@ These virtual machines are useful to do manual compilation tests and other thing
 The last three commands allows to update the cached base systems, to ensure that they have the last versions of the packages. The first one will update all the triplets stored in the default config file; the second one will update the triplets stored in the specified config file; finally, the third one will update only the specified triplet.
 
 
-CONTACTING THE AUTHOR
-=====================
+## CONTACTING THE AUTHOR ##
 
-Sergio Costas Rodríguez (Raster Software Vigo)
-
-raster@rastersoft.com
-
-rastersoft@gmail.com
-
+Sergio Costas Rodríguez (Raster Software Vigo) 
+raster@rastersoft.com 
+rastersoft@gmail.com 
 http://www.rastersoft.com

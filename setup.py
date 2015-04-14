@@ -8,6 +8,7 @@ from distutils import dep_util
 def get_data_files():
     data_files = [
         #(os.path.join('share', 'doc','multipackager'), ['doc']),
+        (os.path.join('share', 'man','man1'), ['multipackager.1']),
     ]
 
     for lang_name in [f for f in os.listdir('locale')]:
@@ -44,7 +45,9 @@ def compile_translations():
 
 compile_translations()
 
-current_version = "0.1"
+os.system("pandoc -s -f markdown_github -t man -o multipackager.1 README.md")
+
+current_version = "0.2"
 
 config_data = open("src/multipackager.py","r")
 for line in config_data:
