@@ -35,7 +35,7 @@ gettext.install("multipackager","/usr/share/locale")
 
 _ = gettext.gettext
 
-version = "0.3"
+version = "0.4"
 
 
 def print_usage(doexit = True):

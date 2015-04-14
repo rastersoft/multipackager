@@ -2,11 +2,7 @@
 
 Simplifies the creation of Linux packages for multiple architectures and distributions.
 
-Multipackager is a program that aims to simplify the creation of packages for
-linux distributions. To do so, it automatizes the creation of virtual machines
-with specific distributions, versions and architectures, and the compilation
-and packaging process for each one. It allows to create packages for i386 and
-amd64 for any available version of Debian and Ubuntu.
+Multipackager is a program that aims to simplify the creation of packages for linux distributions. To do so, it automatizes the creation of virtual machines with specific distributions, versions and architectures, and the compilation and packaging process for each one. It allows to create packages for i386 and amd64 for any available version of Debian and Ubuntu.
 
 
 ## INSTALATION ##

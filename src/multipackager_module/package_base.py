@@ -170,7 +170,7 @@ class package_base(object):
 
     def build_multipackager(self,filename):
 
-        return self.run_chroot(self.working_path, 'bash -c "cd /project && source {:s}"'.format(filename))
+        return self.run_chroot(self.working_path, 'bash -c "cd /project && source {:s} /install_root"'.format(filename))
 
 
     def build_cmake(self):
