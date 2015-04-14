@@ -93,15 +93,15 @@ In order to build the project itself and do the final installation, multipackage
 
 Launching multipackager.py from a command line shows this help:
 
-Usage:
-multipackager.py project_folder
-multipackager.py project_folder config_file
-multipackager.py project_folder {debian|ubuntu} version_name {i386|amd64}
-multipackager.py shell vm_folder {i386|amd64}
-multipackager.py shell vm_folder {debian|ubuntu} version_name {i386|amd64}
-multipackager.py update
-multipackager.py update config_file
-multipackager.py update {debian|ubuntu} version_name {i386|amd64}
+Usage: 
+multipackager.py project_folder 
+multipackager.py project_folder config_file 
+multipackager.py project_folder {debian|ubuntu} version_name {i386|amd64} 
+multipackager.py shell vm_folder {i386|amd64} 
+multipackager.py shell vm_folder {debian|ubuntu} version_name {i386|amd64} 
+multipackager.py update 
+multipackager.py update config_file 
+multipackager.py update {debian|ubuntu} version_name {i386|amd64} 
 
 The first three commands specifies how to build packages for a project. The first one will build packages for the project stored at **project_folder**, and for all the OS triplets specified in the default config file. This way, an user can define all the common triplets he/she uses commonly, and build the packages in a single command.
 
