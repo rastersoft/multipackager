@@ -19,7 +19,6 @@
 
 
 import os
-import sys
 import shutil
 import multipackager_module.package_base
 
@@ -191,6 +190,13 @@ class debian (multipackager_module.package_base.package_base):
                 command += " "+dep
             if (self.run_chroot(self.working_path, command)):
                 return True
+        return False
+
+
+    def build_python(self):
+
+        if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py --command-packages=stdeb.command bdist_deb"')):
+            return True
         return False
 
 

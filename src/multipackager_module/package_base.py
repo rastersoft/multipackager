@@ -168,13 +168,6 @@ class package_base(object):
         return True
 
 
-    def build_python(self):
-
-        if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py --command-packages=stdeb.command bdist_deb"')):
-            return True
-        return False
-
-
     def build_multipackager(self,filename):
 
         return self.run_chroot(self.working_path, 'bash -c "cd /project && source {:s}"'.format(filename))

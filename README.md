@@ -39,7 +39,7 @@ The first time a triplet is specified, multipackager will create a base version 
 
 By default, the working copies are created at **/root/multipackager**, but it is possible to set a different folder in a configuration file (more on this later). The use of the root folder is because multipackager must be run as root, because it launches chroot-based virtual machines.
 
-After the working copy is created, the project's folder is copied inside and a virtual machine is launched. Inside it, multipackager will install the dependencies for the project, compile it and build the package. Multipackager can determine automagically the build system (make, cmake, autoconf/automake...).
+After the working copy is created, the project's folder is copied inside and a virtual machine is launched. Inside it, multipackager will install the dependencies for the project, compile it and build the package. Multipackager can determine automagically the build system (pydev, make, cmake, autoconf/automake...).
 
 The created packages are stored in the current folder. Also, if a package already exists, it won't be created again, but will be skipped. This allows to just relaunch multipackager with the same parameters if, due to an error, the creation of one architecture or OS version fails but not the previous ones.
 
@@ -70,15 +70,19 @@ The **shell** specifies which shell to use when launching a manual environment (
 ## PREPARING THE PROJECT ##
 
 
-Multipackager needs some folders and files already available in the project folder. The first and most important is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control** file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends** and **Build-Depends** fields to allow multipackager to install the needed packages during the build process. Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with **Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified.
+Multipackager needs some folders and files already available in the project folder. The first and most important for binary projects is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control** file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends** and **Build-Depends** fields to allow multipackager to install the needed packages during the build process. Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with **Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified.
 
 There can be, optionally, an **ubuntu** (or **Ubuntu**, or **UBUNTU**) folder with the same files. When creating packages for a Debian system, only the former folders would be used; when creating for an Ubuntu system, if the later exists, them will be used; if not, the former will be used.
+
+For python3 projects, the most important files are **setup.py** (which must be adapted for DistUtils) and **stdeb.cfg**, which contains both the final dependencies AND the build dependencies. About this, multipackager automatically adds **python3, python3-all, python3-stdeb, python-all** and **fakeroot**, so you must add only other needed dependencies (like, in the case or multipackager, *pandoc*, used to convert the README.md file to manpage format).
 
 In order to build the project itself and do the final installation, multipackager will follow these rules, and use **ONLY the first one** that applies:
 
  * if a file called **multipackager_XXXXX.sh** exists in the project folder (with XXXXX being the distro name; e.g. *multipackager_debian.sh*), multipackager will run it, passing as the first and only parameter the **DESTDIR** path (e.g.: *multipackager_ubuntu.sh /install_root*).
 
  * if a file **multipackager.sh** exists in the project folder, multipackager will run it, passing as the first and only parameter the **DESTDIR** path (e.g.: *multipackager.sh /install_root*).
+
+ * if a file **setup.py** exists in the project folder, multipackager will presume that it is a python3 project, and will run **python3 setup.py --command-packages=stdeb.command bdist_deb** to build the package and install it in the **install_root** folder.
 
  * if a file **configure** exists in the project folder, multipackager will presume that it is an autoconf/automake project and will run **./configure --prefix=/usr && make && make DESTDIR=/install_root install** to build the package and install it in the **install_root** folder.
 
