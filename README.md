@@ -123,6 +123,9 @@ CONTACTING THE AUTHOR
 =====================
 
 Sergio Costas Rodríguez (Raster Software Vigo)
+
 raster@rastersoft.com
+
 rastersoft@gmail.com
+
 http://www.rastersoft.com
