@@ -148,6 +148,9 @@ class package_base(object):
             # Now check if it exists a generic shell script called 'multipackager.sh'
         elif (os.path.exists(os.path.join(self.build_path,"multipackager.sh"))):
             return self.build_multipackager("multipackager.sh")
+            # Check if it is a python program
+        elif (os.path.exists(os.path.join(self.build_path,"setup.py"))):
+            return self.build_python()
             # Check if it is an autoconf/automake with the 'configure' file already generated
         elif (os.path.exists(os.path.join(self.build_path,"configure"))):
             return self.build_autoconf(False)
@@ -163,6 +166,13 @@ class package_base(object):
 
         print (_("Unknown build system"))
         return True
+
+
+    def build_python(self):
+
+        if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py --command-packages=stdeb.command bdist_deb"')):
+            return True
+        return False
 
 
     def build_multipackager(self,filename):

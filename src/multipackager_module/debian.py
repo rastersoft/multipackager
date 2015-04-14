@@ -19,6 +19,7 @@
 
 
 import os
+import sys
 import shutil
 import multipackager_module.package_base
 
@@ -49,9 +50,12 @@ class debian (multipackager_module.package_base.package_base):
 
     def get_package_name(self,project_path):
 
+        if (os.path.exists(os.path.join(project_path,"setup.py"))):
+            return None
+
         debian_path = self.check_path_in_builds(project_path)
         if (debian_path == None):
-            print (_(""))
+            return True
 
         control_path = os.path.join(debian_path,"control")
         if (not os.path.exists(control_path)):
@@ -137,20 +141,41 @@ class debian (multipackager_module.package_base.package_base):
 
         """ Install the dependencies needed for building this package """
 
-        self.debian_path = self.check_path_in_builds(self.build_path)
-        if self.debian_path == None:
-            print (_("There is no DEBIAN/UBUNTU folder with the package specific data"))
-            return True
-
-        control_path = os.path.join(self.debian_path,"control")
-        if (not os.path.exists(control_path)):
-            return True
-
         dependencies = []
+
+        if (os.path.exists(os.path.join(self.build_path,"setup.py"))): # it is a python package
+            add_depend = True
+            control_path = os.path.join(self.build_path,"stdeb.cfg")
+            dependencies.append("python3-stdeb")
+            dependencies.append("python3-all")
+            dependencies.append("fakeroot")
+        else:
+            add_depend = False
+            self.debian_path = self.check_path_in_builds(self.build_path)
+            if self.debian_path == None:
+                print (_("There is no DEBIAN/UBUNTU folder with the package specific data"))
+                return True
+
+            control_path = os.path.join(self.debian_path,"control")
+            if (not os.path.exists(control_path)):
+                return True
+
+        print("Control: "+control_path)
         f = open (control_path,"r")
         for line in f:
             if line[:14] == "Build-Depends:":
                 tmp = line[14:].split(",")
+                for element in tmp:
+                    pos = element.find("(") # remove version info
+                    if (pos != -1):
+                        element = element[:pos]
+                    dependencies.append(element.strip())
+                continue
+            if (add_depend) and (line[:7] == "Depends"):
+                tmp = line[7:].strip()
+                if (tmp[0] == ':') or (tmp[0] == '='):
+                    tmp = tmp[1:].strip()
+                tmp = tmp.split(",")
                 for element in tmp:
                     pos = element.find("(") # remove version info
                     if (pos != -1):
@@ -179,6 +204,18 @@ class debian (multipackager_module.package_base.package_base):
 
     def build_package(self):
         """ Takes the binaries located at /install_root and build a package """
+
+        setup_python = os.path.join(self.build_path,"setup.py")
+        if (os.path.exists(setup_python)):
+            destination_dir = os.path.join(self.build_path,"deb_dist")
+            files = os.listdir(destination_dir)
+            for f in files:
+                if f[-4:] == ".deb":
+                    if (os.path.exists(os.path.join(os.getcwd(),f))):
+                        os.remove(os.path.join(os.getcwd(),f))
+                    shutil.move(os.path.join(destination_dir,f), os.path.join(os.getcwd,"{:s}.{:s}{:s}.deb".format(f[:-4],self.distro_type,self.distro_name)))
+                    return False
+            return True
 
         package_path = os.path.join(self.working_path,"install_root","DEBIAN")
         os.makedirs(package_path)

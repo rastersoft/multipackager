@@ -53,7 +53,7 @@ def print_usage(doexit = True):
     print ("multipackager.py update")
     print ("multipackager.py update config_file")
     print ("multipackager.py update {debian|ubuntu} version_name {i386|amd64}")
-    
+
     if (doexit):
         sys.exit(-1)
 
@@ -79,7 +79,11 @@ def build_project(config,project_path):
         if distro != None:
 
             package_name = distro.get_package_name(project_path)
-            if (os.path.exists(os.path.join(os.getcwd(),package_name))):
+            if (package_name == True):
+                print("Can't get the package name")
+                sys.exit(-1)
+
+            if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
                 skipped.append(package_name)
                 continue
 
@@ -96,7 +100,7 @@ def build_project(config,project_path):
             # remove temporary data
             distro.cleanup()
 
-    
+
     if len(built) > 0:
         print(_("Built packages:"))
         for l in built:
