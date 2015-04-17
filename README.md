@@ -7,12 +7,12 @@ Multipackager is a program that aims to simplify the creation of packages for li
 
 ## USAGE ## 
 
-    **multipackager.py** project_folder *[--config config_file]*
-    **multipackager.py** project_folder *[--config config_file]* {debian|ubuntu} version_name {i386|amd64} 
-    **multipackager.py** shell *[--config config_file]* vm_folder {i386|amd64} 
-    **multipackager.py** shell *[--config config_file]* vm_folder {debian|ubuntu} version_name {i386|amd64} 
-    **multipackager.py** update *[--config config_file]* 
-    **multipackager.py** update *[--config config_file]* {debian|ubuntu} version_name {i386|amd64} 
+**multipackager.py** project_folder *[--config config_file]*  
+**multipackager.py** project_folder *[--config config_file]* {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** shell *[--config config_file]* vm_folder {i386|amd64}  
+**multipackager.py** shell *[--config config_file]* vm_folder {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** update *[--config config_file]*  
+**multipackager.py** update *[--config config_file]* {debian|ubuntu} version_name {i386|amd64}   
 
 
 ## INSTALATION ##
