@@ -64,6 +64,17 @@ if (os.geteuid() != 0):
     sys.exit(-1)
 
 
+def get_distro_object(distro_name):
+
+    if (distro_name == "debian") or (distro_name == "ubuntu"):
+        return multipackager_module.debian.debian
+
+    print(_("Distro name {:s} unknown. Aborting.").format(distro_name))
+    sys.exit(-1)
+
+    return None
+
+
 def build_project(config,project_path):
 
     """ This function does all the work """
@@ -72,34 +83,32 @@ def build_project(config,project_path):
     skipped = []
 
     for element in config.distros:
-        distro = None
-        if (element["distro"] == "debian") or (element["distro"] == "ubuntu"):
-            # create a DISTRO object of the right type
-            distro = multipackager_module.debian.debian(config,element["distro"],element["name"],element["architecture"])
-        if distro != None:
+        distroclass = get_distro_object(element["distro"])
 
-            package_name = distro.get_package_name(project_path)
-            if (package_name == True):
-                print("Can't get the package name")
+        # create a DISTRO object of the right type
+        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
+
+        package_name = distro.get_package_name(project_path)
+        if (package_name == True):
+            print("Can't get the package name")
+            sys.exit(-1)
+
+        if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
+            skipped.append(package_name)
+            continue
+
+        # copy the environment to a working folder
+        if (distro.prepare_environment()):
+            print (_("Error when creating the working environment"))
+            sys.exit(-1)
+        # install the packages needed for building the project, and build it
+        if (not distro.build_project(project_path)):
+            # if there are no errors, create the package and copy it to the current directory
+            if distro.build_package():
                 sys.exit(-1)
-
-            if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
-                skipped.append(package_name)
-                continue
-
-            # copy the environment to a working folder
-            if (distro.prepare_environment()):
-                print (_("Error when creating the working environment"))
-                sys.exit(-1)
-            # install the packages needed for building the project, and build it
-            if (not distro.build_project(project_path)):
-                # if there are no errors, create the package and copy it to the current directory
-                if distro.build_package():
-                    sys.exit(-1)
-                built.append(package_name)
-            # remove temporary data
-            distro.cleanup()
-
+            built.append(package_name)
+        # remove temporary data
+        distro.cleanup()
 
     if len(built) > 0:
         print(_("Built packages:"))
@@ -123,6 +132,10 @@ def launch_shell(argv):
 
     env_path = argv[2]
 
+    config = multipackager_module.configuration.configuration(env_path)
+    if (config.read_config_file()):
+        sys.exit(-1)
+
     if nparams == 4:
         if not os.path.exists(env_path):
             print (_("The specified CHROOT environment at {:s} doesn't exists. Aborting.").format(env_path))
@@ -130,16 +143,15 @@ def launch_shell(argv):
         arch = argv[3]
         dtype = ""
         name = ""
+        distro = multipackager_module.package_base.package_base(config,dtype,name,arch)
     else:
         dtype = argv[3]
         name = argv[4]
         arch = argv[5]
+        distroclass = get_distro_object(dtype)
+        # create a DISTRO object of the right type
+        distro = distroclass(config,dtype,name,arch)
 
-    config = multipackager_module.configuration.configuration(env_path)
-    if (config.read_config_file()):
-        sys.exit(-1)
-
-    distro = multipackager_module.package_base.package_base(config,dtype,name,arch)
     if not os.path.exists(env_path):
         distro.copy_environment(env_path)
     else:
@@ -170,12 +182,12 @@ def update_envs(argv):
         sys.exit(-1)
 
     for element in config.distros:
-        distro = None
-        if (element["distro"] == "debian") or (element["distro"] == "ubuntu"):
-            distro = multipackager_module.debian.debian(config,element["distro"],element["name"],element["architecture"])
-        if distro != None:
-            # update the packages in the cached environment
-            distro.update_environment()
+        distroclass = get_distro_object(element["distro"])
+
+        # create a DISTRO object of the right type
+        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
+        # update the packages in the cached environment
+        distro.update_environment()
 
 
 if (len(sys.argv) == 1) or (sys.argv[1] == "help") or (sys.argv[1] == "version"):
