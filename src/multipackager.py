@@ -155,7 +155,12 @@ def launch_shell(argv,config):
     else:
         if (nparams != 3):
             print(_("The project folder exists; launching the shell without copying data"))
-    distro.run_chroot(env_path, config.shell)
+
+    command = ""
+    for path in config.mount_path:
+        command += "--bind={:s} ".format(path)
+    command += config.shell
+    distro.run_chroot(env_path, command)
 
 
 def update_envs(argv,config):

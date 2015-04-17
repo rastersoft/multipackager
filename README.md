@@ -61,6 +61,8 @@ The configuration file is stored, by default, at **/etc/multipackager/config.cfg
     cache_path: path  
     working_path: path  
     shell: path/program
+    mount: /path/to/mount/in/shells
+    mount...
 
 All the lines are optional.
 
@@ -71,6 +73,8 @@ The **cache_path** specifies where to store the cached base systems. If this lin
 The **working_path** specifies where to store the working virtual machines. If this line doesn't exists, multipackager will use **/root/multipackager**.
 
 The **shell** specifies which shell to use when launching a manual environment (more on this later). By default it is **/bin/bash**.
+
+The **mount** command allows to specifiy several paths from the host machine to be mounted in a shell launched from **multipackager**. It is useful to do compilation tests, by mounting the workspace folder inside all virtual machines. It can be just a path, in which case it will be binded *as-is* in the chroot environment, or two paths joint with two dashes (--), which will mount the first path (from the host machine) in the second path (inside the virtual machine). This syntax is the same than the *--bind* command for *systemd-nspawn*.
 
 
 ## PREPARING THE PROJECT ##

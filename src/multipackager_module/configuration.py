@@ -26,6 +26,7 @@ class configuration:
 
         self.project_path = ""
         self.distros = []
+        self.mount_path = []
         self.cache_path = "/var/opt/multipackager"
         self.working_path = "/root/multipackager"
         self.shell = "/bin/bash"
@@ -93,6 +94,12 @@ class configuration:
                     has_error = True;
                     continue
                 self.shell = parameters[1]
+            elif (parameters[0] == "mount:"):
+                if (nparams != 2):
+                    print ("Error in line {:d}; incorrect number of parameters\n".format(line_counter))
+                    has_error = True;
+                    continue
+                self.mount_path.append(parameters[1])
         return has_error
 
 
