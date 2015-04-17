@@ -141,10 +141,32 @@ class fedora (multipackager_module.package_base.package_base):
         if (os.path.exists(os.path.join(self.build_path,"setup.py"))): # it is a python package
             dependencies.append("python3")
         else:
-            return True
+            specs_path = os.path.join(self.build_path,"rpmbuild","SPECS")
+            
+            if not (os.path.exists(specs_path)):
+                print(_("The project lacks the rpmbuild/SPECS folder. Aborting."))
+                return True
+            files = os.listdir(specs_path)
+            final_file = None
+            for l in files:
+                if len(l) < 5:
+                    continue
+                if l[-5:] != ".spec":
+                    continue
+                final_file = os.path.join(specs_path,l)
+                break;
+            
+            if (final_file == None):
+                print(_("No .spec file found. Aborting."))
+                return True
+
+            spec = open(final_file,"r")
+            for line in spec:
+                if line[:14] == "BuildRequires:":
+                    dependencies.append(line[14:].strip())
 
         if (len(dependencies) != 0):
-            command = ""
+            command = "yum -y install"
             for dep in dependencies:
                 command += " "+dep
             if (self.run_chroot(self.working_path, command)):
