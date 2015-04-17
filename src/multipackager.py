@@ -70,19 +70,12 @@ def get_distro_object(distro_name):
     if (distro_name == "debian") or (distro_name == "ubuntu"):
         return multipackager_module.debian.debian
 
-<<<<<<< HEAD
     if (distro_name == "fedora"):
         return multipackager_module.fedora.fedora
 
     print(_("Distro name {:s} unknown. Aborting.").format(distro_name))
     sys.exit(-1)
 
-
-=======
-    print(_("Distro name {:s} unknown. Aborting.").format(distro_name))
-    sys.exit(-1)
-
->>>>>>> master
     return None
 
 
@@ -95,7 +88,6 @@ def build_project(config,project_path):
 
     for element in config.distros:
         distroclass = get_distro_object(element["distro"])
-<<<<<<< HEAD
 
         # create a DISTRO object of the right type
         distro = distroclass(config,element["distro"],element["name"],element["architecture"])
@@ -104,33 +96,6 @@ def build_project(config,project_path):
         if (package_name == True):
             print("Can't get the package name")
             sys.exit(-1)
-
-        if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
-            skipped.append(package_name)
-            continue
-
-        # copy the environment to a working folder
-        if (distro.prepare_environment()):
-            print (_("Error when creating the working environment"))
-            sys.exit(-1)
-        # install the packages needed for building the project, and build it
-        if (not distro.build_project(project_path)):
-            # if there are no errors, create the package and copy it to the current directory
-            if distro.build_package():
-                sys.exit(-1)
-            built.append(package_name)
-        # remove temporary data
-        distro.cleanup()
-=======
-
-        # create a DISTRO object of the right type
-        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
-
-        package_name = distro.get_package_name(project_path)
-        if (package_name == True):
-            print("Can't get the package name")
-            sys.exit(-1)
->>>>>>> master
 
         if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
             skipped.append(package_name)
