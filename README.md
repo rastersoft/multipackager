@@ -56,10 +56,10 @@ This process is repeated for each of the triplets configured in the configuratio
 
 The configuration file is stored, by default, at **/etc/multipackager/config.cfg**, and is a file with the following structure:
 
-    distro: type name architecture 
-    distro... 
-    cache_path: path 
-    working_path: path 
+    distro: type name architecture  
+    distro...  
+    cache_path: path  
+    working_path: path  
     shell: path/program
 
 All the lines are optional.
@@ -127,7 +127,7 @@ These last two commands allow to update the cached base systems, to ensure that 
 
 ## CONTACTING THE AUTHOR ##
 
-Sergio Costas Rodríguez (Raster Software Vigo) 
-raster@rastersoft.com 
-rastersoft@gmail.com 
+Sergio Costas Rodríguez (Raster Software Vigo)  
+raster@rastersoft.com  
+rastersoft@gmail.com  
 http://www.rastersoft.com
