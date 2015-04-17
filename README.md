@@ -2,10 +2,7 @@
 
 Simplifies the creation of Linux packages for multiple architectures and distributions.
 
-Multipackager is a program that aims to simplify the creation of packages for linux distributions.
-To do so, it automatizes the creation of virtual machines with specific distributions, versions and
-architectures, and the compilation and packaging process for each one. It allows to create packages
-for i386 and amd64 for any available version of Debian and Ubuntu.
+Multipackager is a program that aims to simplify the creation of packages for linux distributions. To do so, it automatizes the creation of virtual machines with specific distributions, versions and architectures, and the compilation and packaging process for each one. It allows to create packages for i386 and amd64 for any available version of Debian and Ubuntu.
 
 
 ## USAGE ## 
@@ -79,22 +76,11 @@ The **shell** specifies which shell to use when launching a manual environment (
 ## PREPARING THE PROJECT ##
 
 
-Multipackager needs some folders and files already available in the project folder. The first and most
-important for binary projects is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control**
-file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends**
-and **Build-Depends** fields to allow multipackager to install the needed packages during the build process.
-Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with
-**Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified.
+Multipackager needs some folders and files already available in the project folder. The first and most important for binary projects is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control** file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends** and **Build-Depends** fields to allow multipackager to install the needed packages during the build process. Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with **Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified.
 
-There can be, optionally, an **ubuntu** (or **Ubuntu**, or **UBUNTU**) folder with the same files. When
-creating packages for a Debian system, only the former folders would be used; when creating for an Ubuntu
-system, if the later exists, them will be used; if not, the former will be used.
+There can be, optionally, an **ubuntu** (or **Ubuntu**, or **UBUNTU**) folder with the same files. When creating packages for a Debian system, only the former folders would be used; when creating for an Ubuntu system, if the later exists, them will be used; if not, the former will be used.
 
-For python3 projects, the most important files are **setup.py** (which must be adapted for **DistUtils**) and
-**stdeb.cfg**, which contains both the final dependencies AND the build dependencies. About this, multipackager
-automatically adds **python3, python3-all, python3-stdeb, python-all** and **fakeroot**, so you must add only
-other needed dependencies (like, in the case or multipackager, *pandoc*, used to convert the README.md file to
-manpage format).
+For python3 projects, the most important files are **setup.py** (which must be adapted for **DistUtils**) and **stdeb.cfg**, which contains both the final dependencies AND the build dependencies. About this, multipackager automatically adds **python3, python3-all, python3-stdeb, python-all** and **fakeroot**, so you must add only other needed dependencies (like, in the case or multipackager, *pandoc*, used to convert the README.md file to manpage format).
 
 In order to build the project itself and do the final installation, multipackager will follow these rules, and use **ONLY the first one** that applies:
 
@@ -120,36 +106,23 @@ There are several options:
     multipackager.py project_folder [--config config_file]
     multipackager.py project_folder [--config config_file] [{debian|ubuntu} version_name {i386|amd64}] 
 
-These two commands specifies to build packages for a project. The first one will build packages
-for the project stored at **project_folder**, and for all the OS triplets specified in the default config
-file (unless another **config_file** is specified; in that case the triplets will be searched inside it).
-This way, an user can define all the common triplets he/she uses commonly, and build the packages in
-a single command.
+These two commands specifies to build packages for a project. The first one will build packages for the project stored at **project_folder**, and for all the OS triplets specified in the default config file (unless another **config_file** is specified; in that case the triplets will be searched inside it). This way, an user can define all the common triplets he/she uses commonly, and build the packages in a single command.
 
 The second command allows to build a package for a project for an specific OS triplet.
 
     multipackager.py shell [--config config_file] vm_folder {i386|amd64} 
     multipackager.py shell [--config config_file] vm_folder {debian|ubuntu} version_name {i386|amd64} 
 
-These two commands allow to launch an interactive shell inside a virtual machine. The first one needs
-that the folder with the virtual machine files (**vm_folder**) already exists. The second one checks if
-the folder exists: if it doesn't exist, will copy the base system (from the cache if it already exists,
-or from the server if there is no cached version) to the specified folder, and launch an interative shell
-inside it; if it exists, will work like the previous command. In both cases, specifying the architecture
-is a must.
+These two commands allow to launch an interactive shell inside a virtual machine. The first one needs that the folder with the virtual machine files (**vm_folder**) already exists. The second one checks if the folder exists: if it doesn't exist, will copy the base system (from the cache if it already exists, or from the server if there is no cached version) to the specified folder, and launch an interative shell inside it; if it exists, will work like the previous command. In both cases, specifying the architecture is a must.
 
-Since the vm_folder is not deleted, and is reused if it already exists, this allows to enter a virtual
-machine, do something, exit, and enter again and do more things.
+Since the vm_folder is not deleted, and is reused if it already exists, this allows to enter a virtual machine, do something, exit, and enter again and do more things.
 
-These virtual machines are useful to do manual compilation tests and other things, and they are created
-very fast (if they are already cached, of course).
+These virtual machines are useful to do manual compilation tests and other things, and they are created very fast (if they are already cached, of course).
 
     multipackager.py update [--config config_file] 
     multipackager.py update [--config config_file] {debian|ubuntu} version_name {i386|amd64} 
 
-These last two commands allow to update the cached base systems, to ensure that they have the last versions
-of the packages. The first one will update all the triplets stored in the default config file (or in the
-alternative **config_file**); the second one will update only the specified triplet.
+These last two commands allow to update the cached base systems, to ensure that they have the last versions of the packages. The first one will update all the triplets stored in the default config file (or in the alternative **config_file**); the second one will update only the specified triplet.
 
 
 ## CONTACTING THE AUTHOR ##
