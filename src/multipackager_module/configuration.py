@@ -22,13 +22,19 @@ import os
 
 class configuration:
 
-    def __init__(self,project_path):
+    def __init__(self):
 
-        self.project_path = project_path
+        self.project_path = ""
         self.distros = []
         self.cache_path = "/var/opt/multipackager"
         self.working_path = "/root/multipackager"
         self.shell = "/bin/bash"
+        self.config_file = "/etc/multipackager/config.cfg"
+
+
+    def set_project_path(self,project_path):
+        
+        self.project_path = project_path
 
 
     def delete_distros(self):
@@ -41,15 +47,12 @@ class configuration:
         self.distros.append({"distro":distro, "name":name, "architecture":architecture})
 
 
-    def read_config_file(self,file = None):
+    def read_config_file(self):
 
         has_error = False;
 
         try:
-            if (file == None):
-                cfg = open(os.path.join("/etc","multipackager","config.cfg"),"r")
-            else:
-                cfg = open(file,"r")
+            cfg = open(self.config_file,"r")
         except:
             print("Can't find the configuration file")
             return True
@@ -91,3 +94,27 @@ class configuration:
                     continue
                 self.shell = parameters[1]
         return has_error
+
+
+    def parse_args(self,args):
+
+        args_size = len(args)
+
+        if args_size == 0:
+            return []
+        
+        if args[0][0] != "-":
+            retval = self.parse_args(args[1:])
+            if retval == None:
+                return None
+            else:
+                return [args[0]] + retval
+
+        if args[0] == "--config":
+            if args_size < 1:
+                print (_("--config parameter must be followed by a path"))
+                return None
+            self.config_file = args[1]
+            return args[2:]
+
+        return None

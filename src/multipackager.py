@@ -45,14 +45,12 @@ def print_usage(doexit = True):
     print ("Multipackager")
     print ("Version {:s}".format(version))
     print ("Usage:")
-    print ("multipackager.py project_folder")
-    print ("multipackager.py project_folder config_file")
-    print ("multipackager.py project_folder {debian|ubuntu} version_name {i386|amd64}")
-    print ("multipackager.py shell vm_folder {i386|amd64}")
-    print ("multipackager.py shell vm_folder {debian|ubuntu} version_name {i386|amd64}")
-    print ("multipackager.py update")
-    print ("multipackager.py update config_file")
-    print ("multipackager.py update {debian|ubuntu} version_name {i386|amd64}")
+    print ("multipackager.py project_folder [--config config_file]")
+    print ("multipackager.py project_folder [--config config_file] {debian|ubuntu} version_name {i386|amd64}")
+    print ("multipackager.py shell [--config config_file] vm_folder {i386|amd64}")
+    print ("multipackager.py shell [--config config_file] vm_folder {debian|ubuntu} version_name {i386|amd64}")
+    print ("multipackager.py update [--config config_file]")
+    print ("multipackager.py update [--config config_file] {debian|ubuntu} version_name {i386|amd64}")
 
     if (doexit):
         sys.exit(-1)
@@ -124,7 +122,7 @@ def build_project(config,project_path):
         print(_("Skipped packages: none"))
 
 
-def launch_shell(argv):
+def launch_shell(argv,config):
 
     nparams = len(argv)
     if (nparams != 4) and (nparams != 6):
@@ -132,7 +130,7 @@ def launch_shell(argv):
 
     env_path = argv[2]
 
-    config = multipackager_module.configuration.configuration(env_path)
+    config.set_project_path(env_path)
     if (config.read_config_file()):
         sys.exit(-1)
 
@@ -160,26 +158,22 @@ def launch_shell(argv):
     distro.run_chroot(env_path, config.shell)
 
 
-def update_envs(argv):
+def update_envs(argv,config):
 
     nparams = len(argv)
 
-    if (nparams != 2) and (nparams != 3) and (nparams != 5):
+    if (nparams != 2) and (nparams != 5):
         print_usage()
 
-    config = multipackager_module.configuration.configuration("")
-    if (nparams == 2):
-        retval = config.read_config_file()
-    elif (nparams == 3):
-        retval = config.read_config_file(sys.argv[2])
-    else:
+    retval = config.read_config_file()
+    if (retval):
+        sys.exit(-1)
+
+    if (nparams == 5):
         retval = config.read_config_file()
         config.delete_distros()
         config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
         retval = False
-
-    if (retval):
-        sys.exit(-1)
 
     for element in config.distros:
         distroclass = get_distro_object(element["distro"])
@@ -190,39 +184,39 @@ def update_envs(argv):
         distro.update_environment()
 
 
-if (len(sys.argv) == 1) or (sys.argv[1] == "help") or (sys.argv[1] == "version"):
+config = multipackager_module.configuration.configuration()
+
+args = config.parse_args(sys.argv)
+if args == None:
     print_usage()
 
-if (sys.argv[1] == "shell"):
-    launch_shell(sys.argv)
+if (len(args) == 1) or (args[1] == "help") or (args[1] == "version"):
+    print_usage()
+
+if (args[1] == "shell"):
+    launch_shell(args,config)
     sys.exit(0)
 
-if (sys.argv[1] == "update"):
-    update_envs(sys.argv)
+if (args[1] == "update"):
+    update_envs(args,config)
     sys.exit(0)
 
-nparams = len(sys.argv)
+nparams = len(args)
 
-if (nparams != 2) and (nparams != 3) and (nparams != 5):
+if (nparams != 2) and (nparams != 5):
     print_usage()
 
 project_folder = sys.argv[1]
+config.set_project_path(project_folder)
 
-if (nparams == 2):
-    config = multipackager_module.configuration.configuration(project_folder)
-    retval = config.read_config_file()
-elif (nparams == 3):
-    config = multipackager_module.configuration.configuration(project_folder)
-    retval = config.read_config_file(sys.argv[2])
-else:
-    config = multipackager_module.configuration.configuration(project_folder)
+if config.read_config_file():
+    sys.exit(-1)
+
+if (nparams == 5):
     # read all the configuration to set all the parameters
     retval = config.read_config_file()
     config.delete_distros()
     config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
     retval = False
-
-if (retval):
-    sys.exit(-1)
 
 build_project(config,project_folder)
