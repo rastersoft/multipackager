@@ -7,12 +7,12 @@ Multipackager is a program that aims to simplify the creation of packages for li
 
 ## USAGE ## 
 
-    multipackager.py project_folder [--config config_file]
-    multipackager.py project_folder [--config config_file] [{debian|ubuntu} version_name {i386|amd64}] 
-    multipackager.py shell [--config config_file] vm_folder {i386|amd64} 
-    multipackager.py shell [--config config_file] vm_folder {debian|ubuntu} version_name {i386|amd64} 
-    multipackager.py update [--config config_file] 
-    multipackager.py update [--config config_file] {debian|ubuntu} version_name {i386|amd64} 
+    **multipackager.py** project_folder *[--config config_file]*
+    **multipackager.py** project_folder *[--config config_file]* {debian|ubuntu} version_name {i386|amd64} 
+    **multipackager.py** shell *[--config config_file]* vm_folder {i386|amd64} 
+    **multipackager.py** shell *[--config config_file]* vm_folder {debian|ubuntu} version_name {i386|amd64} 
+    **multipackager.py** update *[--config config_file]* 
+    **multipackager.py** update *[--config config_file]* {debian|ubuntu} version_name {i386|amd64} 
 
 
 ## INSTALATION ##
@@ -103,15 +103,15 @@ In order to build the project itself and do the final installation, multipackage
 
 There are several options:
 
-**multipackager.py** project_folder [--config config_file]  
-**multipackager.py** project_folder [--config config_file] [{debian|ubuntu} version_name {i386|amd64}]  
+**multipackager.py** project_folder *[--config config_file]*  
+**multipackager.py** project_folder *[--config config_file]* {debian|ubuntu} version_name {i386|amd64}  
 
 These two commands specifies to build packages for a project. The first one will build packages for the project stored at **project_folder**, and for all the OS triplets specified in the default config file (unless another **config_file** is specified; in that case the triplets will be searched inside it). This way, an user can define all the common triplets he/she uses commonly, and build the packages in a single command.
 
 The second command allows to build a package for a project for an specific OS triplet.
 
-**multipackager.py** shell [--config config_file] vm_folder {i386|amd64}  
-**multipackager.py** shell [--config config_file] vm_folder {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** shell *[--config config_file]* vm_folder {i386|amd64}  
+**multipackager.py** shell *[--config config_file]* vm_folder {debian|ubuntu} version_name {i386|amd64}  
 
 These two commands allow to launch an interactive shell inside a virtual machine. The first one needs that the folder with the virtual machine files (**vm_folder**) already exists. The second one checks if the folder exists: if it doesn't exist, will copy the base system (from the cache if it already exists, or from the server if there is no cached version) to the specified folder, and launch an interative shell inside it; if it exists, will work like the previous command. In both cases, specifying the architecture is a must.
 
@@ -119,8 +119,8 @@ Since the vm_folder is not deleted, and is reused if it already exists, this all
 
 These virtual machines are useful to do manual compilation tests and other things, and they are created very fast (if they are already cached, of course).
 
-**multipackager.py** update [--config config_file]  
-**multipackager.py** update [--config config_file] {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** update *[--config config_file]*  
+**multipackager.py** update *[--config config_file]* {debian|ubuntu} version_name {i386|amd64}  
 
 These last two commands allow to update the cached base systems, to ensure that they have the last versions of the packages. The first one will update all the triplets stored in the default config file (or in the alternative **config_file**); the second one will update only the specified triplet.
 
