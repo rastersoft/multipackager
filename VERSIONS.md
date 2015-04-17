@@ -1,3 +1,8 @@
+0.5 (2015/04/18)
+ * Better command line parsing options
+ * Allows to mount several paths from the host machine inside the virtual machines
+ * Now the installation doesn't fail if the dep_utils package isn't installed
+ * Now generates the cache environment in all cases
 0.4 (2015/04/15)
  * Now passes the destination folder to the **multipackager.sh** script
 0.3 (2015/04/14)
