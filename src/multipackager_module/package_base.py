@@ -47,17 +47,25 @@ class package_base(object):
         self.build_path = None
 
 
-    def update_environment(self):
-
-        """ Ensures that the environment is updated with the last packages """
-
-        backup_path = self.base_path+".backup"
+    def check_cache(self):
 
         # If there is no base system, create it
         if (not os.path.exists(self.base_path)):
             print(_("Generating the environment for {:s}").format(self.chroot_name))
             if self.generate():
                 return True # error!!!
+
+        return False
+
+
+    def update_environment(self):
+
+        """ Ensures that the environment is updated with the last packages """
+
+        backup_path = self.base_path+".backup"
+
+        if self.check_cache():
+            return True
 
         print(_("Generating a backup for {:s}").format(self.chroot_name))
         shutil.rmtree(backup_path, ignore_errors=True) # delete any backup that already exists
@@ -88,6 +96,9 @@ class package_base(object):
 
         """ Creates a working copy of the chroot environment to keep the original untouched """
 
+        if self.check_cache():
+            return True
+
         print(_("Creating working copy of {:s}").format(self.chroot_name))
         if (not os.path.exists(self.configuration.working_path)):
             os.makedirs(self.configuration.working_path)
@@ -104,6 +115,9 @@ class package_base(object):
     def copy_environment(self,final_path):
 
         """ Creates a working copy of the chroot environment to keep the original untouched """
+
+        if self.check_cache():
+            return True
 
         print(_("Creating working copy of {:s}").format(self.chroot_name))
         if (not os.path.exists(final_path)):
@@ -220,3 +234,8 @@ class package_base(object):
         command = "systemd-nspawn -D {:s} --personality {:s} {:s}".format(base_path,personality,command)
         return self.run_external_program(command)
 
+
+    def set_perms(self,filename):
+
+        if (os.path.exists(filename)):
+            os.chmod(filename, 0o755)

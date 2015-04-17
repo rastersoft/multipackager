@@ -33,7 +33,6 @@ class debian (multipackager_module.package_base.package_base):
 
     def check_path_in_builds(self,project_path):
 
-        print("Checking "+project_path)
         if self.distro_type == "ubuntu":
             # Try the "ubuntu" folder, and if it doesn't exists, try with "debian" one
             path_list = ["ubuntu","UBUNTU","Ubuntu","debian","DEBIAN","Debian"]
@@ -48,6 +47,7 @@ class debian (multipackager_module.package_base.package_base):
 
 
     def get_package_name(self,project_path):
+        """ Returns the final package name for the project specified, or None if can't be determined yet """
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
             return None
@@ -130,12 +130,6 @@ class debian (multipackager_module.package_base.package_base):
         return False
 
 
-    def set_perms(self,filename):
-
-        if (os.path.exists(filename)):
-            os.chmod(filename, 0o755)
-
-
     def install_build_deps(self):
 
         """ Install the dependencies needed for building this package """
@@ -159,7 +153,6 @@ class debian (multipackager_module.package_base.package_base):
             if (not os.path.exists(control_path)):
                 return True
 
-        print("Control: "+control_path)
         f = open (control_path,"r")
         for line in f:
             if (line[:13] == "Build-Depends"):
@@ -194,6 +187,7 @@ class debian (multipackager_module.package_base.package_base):
 
 
     def build_python(self):
+        """ Builds a package for a python project """
 
         if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py --command-packages=stdeb.command bdist_deb"')):
             return True

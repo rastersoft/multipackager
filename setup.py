@@ -3,7 +3,11 @@
 import os
 from glob import glob
 from distutils.core import setup
-from distutils import dep_util
+
+try:
+    from distutils import dep_util
+except:
+    pass
 
 def get_data_files():
     data_files = [
