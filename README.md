@@ -103,8 +103,8 @@ In order to build the project itself and do the final installation, multipackage
 
 There are several options:
 
-**multipackager.py** project_folder [--config config_file]
-**multipackager.py** project_folder [--config config_file] [{debian|ubuntu} version_name {i386|amd64}] 
+**multipackager.py** project_folder [--config config_file] 
+**multipackager.py** project_folder [--config config_file] [{debian|ubuntu} version_name {i386|amd64}]  
 
 These two commands specifies to build packages for a project. The first one will build packages for the project stored at **project_folder**, and for all the OS triplets specified in the default config file (unless another **config_file** is specified; in that case the triplets will be searched inside it). This way, an user can define all the common triplets he/she uses commonly, and build the packages in a single command.
 
