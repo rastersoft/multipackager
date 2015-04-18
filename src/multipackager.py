@@ -26,6 +26,7 @@ import multipackager_module.fedora
 import multipackager_module.configuration
 import multipackager_module.package_base
 
+
 gettext.bindtextdomain("multipackager","/usr/share/locale")
 try:
     locale.setlocale(locale.LC_ALL,"")
@@ -107,6 +108,7 @@ def build_project(config,project_path):
         if (not distro.build_project(project_path)):
             # if there are no errors, create the package and copy it to the current directory
             if distro.build_package():
+                print (_("Failed to build the packages"))
                 sys.exit(-1)
             built.append(package_name)
         # remove temporary data

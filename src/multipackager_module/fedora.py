@@ -29,15 +29,12 @@ class fedora (multipackager_module.package_base.package_base):
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture)
         self.project_name = "project"
         self.project_version = "1.0"
+        self.project_release = "1"
 
 
     def check_path_in_builds(self,project_path):
 
-        if self.distro_type == "ubuntu":
-            # Try the "ubuntu" folder, and if it doesn't exists, try with "fedora" one
-            path_list = ["ubuntu","UBUNTU","Ubuntu","debian","DEBIAN","Debian"]
-        else:
-            path_list = ["debian","DEBIAN","Debian"]
+        path_list = ["rpmbuild/SPECS","RPM/SPECS","rpm/SPECS","rpmbuild","RPM","rpm"]
 
         for element in path_list:
             path = os.path.join(project_path,element)
@@ -52,7 +49,9 @@ class fedora (multipackager_module.package_base.package_base):
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
             return None
 
-        return None
+        self.read_specs_data(project_path)
+
+        return "{:s}.{:s}{:s}-{:s}-{:s}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release,self.architecture)
 
 
     def generate(self):
@@ -117,6 +116,8 @@ class fedora (multipackager_module.package_base.package_base):
 
         shutil.rmtree(tmp_path, ignore_errors=True)
 
+        self.read_specs_data(self.build_path)
+
         return False # no error
 
 
@@ -132,42 +133,56 @@ class fedora (multipackager_module.package_base.package_base):
         return False
 
 
-    def install_build_deps(self):
+    def read_specs_data(self,working_path):
 
-        """ Install the dependencies needed for building this package """
+        self.dependencies = []
+        self.dependencies.append("rpm-build")
 
-        dependencies = []
-
-        if (os.path.exists(os.path.join(self.build_path,"setup.py"))): # it is a python package
-            dependencies.append("python3")
+        if (os.path.exists(os.path.join(working_path,"setup.py"))): # it is a python package
+            self.dependencies.append("python3")
         else:
-            specs_path = os.path.join(self.build_path,"rpmbuild","SPECS")
-            
+            specs_path = self.check_path_in_builds(working_path)
+
             if not (os.path.exists(specs_path)):
                 print(_("The project lacks the rpmbuild/SPECS folder. Aborting."))
                 return True
             files = os.listdir(specs_path)
-            final_file = None
+            self.final_file = None
             for l in files:
                 if len(l) < 5:
                     continue
                 if l[-5:] != ".spec":
                     continue
-                final_file = os.path.join(specs_path,l)
+                self.final_file = os.path.join(specs_path,l)
                 break;
-            
-            if (final_file == None):
+
+            if (self.final_file == None):
                 print(_("No .spec file found. Aborting."))
                 return True
 
-            spec = open(final_file,"r")
+            spec = open(self.final_file,"r")
             for line in spec:
                 if line[:14] == "BuildRequires:":
-                    dependencies.append(line[14:].strip())
+                    self.dependencies.append(line[14:].strip())
+                    continue
+                if line[:5] == "Name:":
+                    self.project_name = line[5:].strip()
+                    continue
+                if line[:8] == "Version:":
+                    self.project_version = line[8:].strip()
+                    continue
+                if line[:8] == "Release:":
+                    self.project_release = line[8:].strip()
+                    continue
 
-        if (len(dependencies) != 0):
+
+    def install_build_deps(self):
+
+        """ Install the dependencies needed for building this package """
+
+        if (len(self.dependencies) != 0):
             command = "yum -y install"
-            for dep in dependencies:
+            for dep in self.dependencies:
                 command += " "+dep
             if (self.run_chroot(self.working_path, command)):
                 return True
@@ -188,5 +203,83 @@ class fedora (multipackager_module.package_base.package_base):
             # it is a python project
             return True
 
-        return True
+        tmpfolder = self.check_path_in_builds(self.build_path)
+        if (tmpfolder == None):
+            print (_("Can't find the rpmbuild folder. Aborting."))
+            return True
+
+        os.makedirs(os.path.join(self.working_path,"rpmpackage/SPECS"))
+        os.makedirs(os.path.join(self.working_path,"rpmpackage/SOURCES"))
+        os.makedirs(os.path.join(self.working_path,"rpmpackage/BUILD"))
+        os.makedirs(os.path.join(self.working_path,"rpmpackage/RPMS"))
+        os.makedirs(os.path.join(self.working_path,"rpmpackage/SRPMS"))
+
+        try:
+            f = open(os.path.join(self.working_path,"root/.rpmmacros"),"w")
+            f.write("%_topdir /rpmpackage\n")
+            f.write("%_builddir %{_topdir}/BUILD\n")
+            f.write("%_rpmdir %{_topdir}/RPMS\n")
+            f.write("%_sourcedir %{_topdir}/SOURCES\n")
+            f.write("%_specdir %{_topdir}/SPECS\n")
+            f.write("%_srcrpmdir %{_topdir}/SRPMS\n")
+            f.close()
+        except:
+            print (_("Can't create the .rpmmacros file. Aborting."))
+            return True
+
+        spec_i = open(self.final_file,"r")
+        spec_o = open(os.path.join(self.working_path,"rpmpackage/SPECS",self.project_name+".specs"),"w")
+        do_copy = True
+        for line in spec_i:
+            line = line.strip()
+            if (line == ""):
+                do_copy = True
+                spec_o.write("\n")
+                continue
+
+            if do_copy == False:
+                continue
+
+            if line[0] != '%':
+                spec_o.write(line+"\n")
+                continue
+
+            if line[:5] == "%prep":
+                spec_o.write("%prep\n")
+                do_copy = False
+                continue
+            if line[:6] == "%build":
+                spec_o.write("%build\n")
+                do_copy = False
+                continue
+            if line[:8] == "%install":
+                spec_o.write("%install\n")
+                spec_o.write("rm -rf $RPM_BUILD_ROOT/*\n")
+                spec_o.write("cp -a /install_root/* $RPM_BUILD_ROOT/\n")
+                do_copy = False
+                continue
+            if line[:6] == "%clean":
+                spec_o.write("%clean\n")
+                spec_o.write("rm -rf $RPM_BUILD_ROOT/*\n")
+                do_copy = False
+                continue
+            if line[:6] == "%files":
+                spec_o.write("%files\n")
+                spec_o.write("/*\n")
+                do_copy = False
+                continue
+
+            spec_o.write(line+"\n")
+        spec_i.close()
+        spec_o.close()
+
+        command = "rpmbuild -bb {:s}".format(os.path.join("rpmpackage/SPECS",self.project_name+".specs"))
+        if (self.run_chroot(self.working_path, command)):
+            return True
+
+        command = "cp -a {:s} {:s}".format(os.path.join(self.working_path,"rpmpackage/RPMS/*"),os.path.join(os.getcwd(),self.get_package_name(self.build_path)))
+        if (self.run_external_program(command)):
+            return True
+
+        return False
 

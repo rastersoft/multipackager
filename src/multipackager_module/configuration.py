@@ -34,7 +34,7 @@ class configuration:
 
 
     def set_project_path(self,project_path):
-        
+
         self.project_path = project_path
 
 
@@ -109,7 +109,7 @@ class configuration:
 
         if args_size == 0:
             return []
-        
+
         if args[0][0] != "-":
             retval = self.parse_args(args[1:])
             if retval == None:
