@@ -26,6 +26,9 @@ class fedora (multipackager_module.package_base.package_base):
 
     def __init__(self, configuration, distro_type, distro_name, architecture):
 
+        if architecture == "amd64":
+            architecture = "x86_64"
+
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture)
         self.project_name = "project"
         self.project_version = "1.0"
