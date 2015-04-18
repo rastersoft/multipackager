@@ -110,7 +110,8 @@ def build_project(config,project_path):
             if distro.build_package():
                 print (_("Failed to build the packages"))
                 sys.exit(-1)
-            built.append(package_name)
+            if (package_name != None):
+                built.append(package_name)
         # remove temporary data
         distro.cleanup()
 

@@ -46,10 +46,10 @@ class fedora (multipackager_module.package_base.package_base):
     def get_package_name(self,project_path):
         """ Returns the final package name for the project specified, or None if can't be determined yet """
 
+        self.read_specs_data(project_path)
+
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
             return None
-
-        self.read_specs_data(project_path)
 
         return "{:s}.{:s}{:s}-{:s}-{:s}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release,self.architecture)
 
@@ -140,6 +140,35 @@ class fedora (multipackager_module.package_base.package_base):
 
         if (os.path.exists(os.path.join(working_path,"setup.py"))): # it is a python package
             self.dependencies.append("python3")
+            extra = open(os.path.join(working_path,"setup.cfg"))
+            rpm_block = False
+            for line in extra:
+                line = line.strip()
+                if line[0] == '[':
+                    if line == "[bdist_rpm]":
+                        rpm_block = True
+                    else:
+                        rpm_block = False
+
+                if not rpm_block:
+                    continue
+
+                if line[:15] == "build_requires:":
+                    deps = line[15:].split(" ")
+                    for l in deps:
+                        if l == "":
+                            continue
+                        self.dependencies.append(l)
+                    continue
+                if line[:5] == "name:":
+                    self.project_name = line[5:].strip()
+                    continue
+                if line[:8] == "version:":
+                    self.project_version = line[8:].strip()
+                    continue
+                if line[:8] == "release:":
+                    self.project_release = line[8:].strip()
+                    continue
         else:
             specs_path = self.check_path_in_builds(working_path)
 
@@ -192,7 +221,10 @@ class fedora (multipackager_module.package_base.package_base):
     def build_python(self):
         """ Builds a package for a python project """
 
-        return True
+        if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py bdist_rpm"')):
+            return True
+
+        return False
 
 
     def build_package(self):
@@ -200,8 +232,10 @@ class fedora (multipackager_module.package_base.package_base):
 
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
-            # it is a python project
-            return True
+            command = "cp -a {:s} {:s}".format(os.path.join(self.build_path,"dist/*.noarch.rpm"),os.getcwd())
+            if (self.run_external_program(command)):
+                return True
+            return False
 
         tmpfolder = self.check_path_in_builds(self.build_path)
         if (tmpfolder == None):
