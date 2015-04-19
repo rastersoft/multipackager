@@ -2,17 +2,17 @@
 
 Simplifies the creation of Linux packages for multiple architectures and distributions.
 
-Multipackager is a program that aims to simplify the creation of packages for linux distributions. To do so, it automatizes the creation of virtual machines with specific distributions, versions and architectures, and the compilation and packaging process for each one. It allows to create packages for i386 and amd64 for any available version of Debian and Ubuntu.
+Multipackager is a program that aims to simplify the creation of packages for linux distributions. To do so, it automatizes the creation of virtual machines with specific distributions, versions and architectures, and the compilation and packaging process for each one. It allows to create packages for i386 and amd64 for any available version of Debian, Ubuntu and Fedora.
 
 
 ## USAGE ## 
 
 **multipackager.py** *[--config config_file]* project_folder  
-**multipackager.py** *[--config config_file]* project_folder {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* project_folder {debian|ubuntu|fedora} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* shell vm_folder {i386|amd64}  
-**multipackager.py** *[--config config_file]* shell vm_folder {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* shell vm_folder {debian|ubuntu|fedora} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* update  
-**multipackager.py** *[--config config_file]* update {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora} version_name {i386|amd64}  
 
 
 ## INSTALATION ##
@@ -25,21 +25,24 @@ Multipackager have the following dependencies:
 
     python 3
     debootstrap
+    yum
     systemd
 
-Debootstrap is used to generate the basic CHROOT environment for the distros; systemd is needed to launch the virtual machines and keep them isolated (something that the basic CHROOT can't do).
+Debootstrap is used to generate the basic CHROOT environment for the debian based distros; yum is used for the same thing, but for fedora based ones; systemd is needed to launch the virtual machines and keep them isolated (something that the basic CHROOT can't do).
 
 
 ## HOW DOES IT WORK? ##
 
-Multipackager uses Debootstrap to automatically download and generate several virtual machines for the desired distros, versions and architectures. After that, it automatically compiles the specified project's source code for each one, and creates the corresponding package.
+Multipackager uses Debootstrap or YUM to automatically download and generate several virtual machines for the desired distros, versions and architectures. After that, it automatically compiles the specified project's source code for each one, and creates the corresponding package.
 
-Each virtual machine is defined by a triplet of distribution type, distribution name and architecture. Currently only "debian" and "ubuntu" are supported, and "i386" and "amd64" for architecture. Examples of these triplets are:
+Each virtual machine is defined by a triplet of distribution type, distribution name and architecture. Currently only *debian*, *ubuntu* and *fedora* are supported, and *i386* and *amd64* for architecture. Examples of these triplets are:
 
     debian jessie i386
     debian sid amd64
     ubuntu utopic amd64
     ubuntu trusty i386
+    fedora 21 amd64
+    fedora 20 i386
 
 The first time a triplet is specified, multipackager will create a base version in an internal cache (stored at **/var/opt/multipackager**), and will use it the next times to reduce the creation time. This cached version has only the base system; each time a new package is created, a working copy of this base system is made, where the dependencies are installed and the project is built, thus keeping the cached base system pristine. Of course, it is possible to do an update of the base cached base system to ensure that the latest packages are used.
 
@@ -80,11 +83,13 @@ The **mount** command allows to specifiy several paths from the host machine to 
 ## PREPARING THE PROJECT ##
 
 
-Multipackager needs some folders and files already available in the project folder. The first and most important for binary projects is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control** file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends** and **Build-Depends** fields to allow multipackager to install the needed packages during the build process. Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with **Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified.
+Multipackager needs some folders and files already available in the project folder:
 
-There can be, optionally, an **ubuntu** (or **Ubuntu**, or **UBUNTU**) folder with the same files. When creating packages for a Debian system, only the former folders would be used; when creating for an Ubuntu system, if the later exists, them will be used; if not, the former will be used.
+ * For Debian-based distros, the first and most important for binary projects is the **debian** (or **Debian**, or **DEBIAN**) folder, with the **control** file ( https://www.debian.org/doc/debian-policy/ch-controlfields.html ). This file must have **Depends** and **Build-Depends** fields to allow multipackager to install the needed packages during the build process. Also, it is mandatory to include a field **Architecture: any**, which multipackager will replace with **Architecture: x86** or **Architecture: x86_64** as needed. If the field is **Architecture: all**, it won't be modified. There can be, optionally, an **ubuntu** (or **Ubuntu**, or **UBUNTU**) folder with the same files. When creating packages for a Debian system, only the former folders would be used; when creating for an Ubuntu system, if the later exists, them will be used; if not, the former will be used.
 
-For python3 projects, the most important files are **setup.py** (which must be adapted for **DistUtils**) and **stdeb.cfg**, which contains both the final dependencies AND the build dependencies. About this, multipackager automatically adds **python3, python3-all, python3-stdeb, python-all** and **fakeroot**, so you must add only other needed dependencies (like, in the case or multipackager, *pandoc*, used to convert the README.md file to manpage format).
+ * For Fedora-based distros, the most important file for binary projects is the **rpmbuild/SPECS** folder, with the **projectname.specs** file ( http://www.rpm.org/max-rpm/s1-rpm-build-creating-spec-file.html ). It must have the **Requires** and **BuildRequires** fields.
+
+ * For python3 projects, the most important files are **setup.py** (which must be adapted for **DistUtils**), **stdeb.cfg** ( https://pypi.python.org/pypi/stdeb ), which contains both the final dependencies AND the build dependencies for Debian-based packages, and **setup.cfg**, which contains, in the bdist_rpm group ( https://docs.python.org/2.0/dist/creating-rpms.html ), the final and build dependencies for Fedora-based packages. About this, multipackager automatically adds **python3, python3-all, python3-stdeb, python-all** and **fakeroot**, so you must add only other needed dependencies (like, in the case or multipackager, *pandoc*, used to convert the README.md file to manpage format).
 
 In order to build the project itself and do the final installation, multipackager will follow these rules, and use **ONLY the first one** that applies:
 
@@ -92,7 +97,7 @@ In order to build the project itself and do the final installation, multipackage
 
  * if a file **multipackager.sh** exists in the project folder, multipackager will run it, passing as the first and only parameter the **DESTDIR** path (e.g.: *multipackager.sh /install_root*).
 
- * if a file **setup.py** exists in the project folder, multipackager will presume that it is a python3 project, and will run **python3 setup.py --command-packages=stdeb.command bdist_deb** to build the package and install it in the **install_root** folder.
+ * if a file **setup.py** exists in the project folder, multipackager will presume that it is a python3 project, and will run **python3 setup.py --command-packages=stdeb.command bdist_deb** to build the package and install it in the **install_root** folder (for debian-based distros) or **python3 setup.py bdist_rpm** for fedora-based distros.
 
  * if a file **configure** exists in the project folder, multipackager will presume that it is an autoconf/automake project and will run **./configure --prefix=/usr && make && make DESTDIR=/install_root install** to build the package and install it in the **install_root** folder.
 

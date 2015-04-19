@@ -1,3 +1,5 @@
+0.6
+ * Added support for Fedora (RPM) packages
 0.5 (2015/04/18)
  * Better command line parsing options
  * Allows to mount several paths from the host machine inside the virtual machines
