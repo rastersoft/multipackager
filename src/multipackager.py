@@ -26,6 +26,7 @@ import multipackager_module.fedora
 import multipackager_module.configuration
 import multipackager_module.package_base
 
+import pkg_resources
 
 gettext.bindtextdomain("multipackager","/usr/share/locale")
 try:
@@ -37,8 +38,7 @@ gettext.install("multipackager","/usr/share/locale")
 
 _ = gettext.gettext
 
-version = "0.5"
-
+version = str(pkg_resources.require("multipackager")[0].version)
 
 def print_usage(doexit = True):
 
