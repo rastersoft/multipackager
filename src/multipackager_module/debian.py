@@ -27,8 +27,6 @@ class debian (multipackager_module.package_base.package_base):
     def __init__(self, configuration, distro_type, distro_name, architecture):
 
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture)
-        self.project_name = "project"
-        self.project_version = "1.0"
 
 
     def check_path_in_builds(self,project_path):
@@ -51,15 +49,15 @@ class debian (multipackager_module.package_base.package_base):
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
             self.read_python_setup(project_path)
-            package_name = "{:s}.{:s}_{:s}~{:s}0_all.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type)
+            package_name = "{:s}-{:s}.{:s}_{:s}~{:s}0_all.deb".format("python2" if self.python2 else "python3",self.project_name,self.distro_name,self.project_version,self.distro_type)
         else:
             debian_path = self.check_path_in_builds(project_path)
             if (debian_path == None):
-                return None
+                return True
 
             control_path = os.path.join(debian_path,"control")
             if (not os.path.exists(control_path)):
-                return None
+                return True
 
             f = open (control_path,"r")
             for line in f:

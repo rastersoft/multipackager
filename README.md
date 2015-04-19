@@ -12,7 +12,9 @@ Multipackager is a program that aims to simplify the creation of packages for li
 **multipackager.py** *[--config config_file]* shell vm_folder {i386|amd64}  
 **multipackager.py** *[--config config_file]* shell vm_folder {debian|ubuntu|fedora} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* update  
-**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora} version_name {i386|amd64}
+**multipackager.py** *[--config config_file]* clearcache  
+**multipackager.py** *[--config config_file]* clearcache {debian|ubuntu|fedora} version_name {i386|amd64}  
 
 
 ## INSTALATION ##
@@ -135,7 +137,12 @@ These virtual machines are useful to do manual compilation tests and other thing
 **multipackager.py** *[--config config_file]* update  
 **multipackager.py** *[--config config_file]* update {debian|ubuntu} version_name {i386|amd64}  
 
-These last two commands allow to update the cached base systems, to ensure that they have the last versions of the packages. The first one will update all the triplets stored in the default config file (or in the alternative **config_file**); the second one will update only the specified triplet.
+These two commands allow to update the cached base systems, to ensure that they have the last versions of the packages. The first one will update all the triplets stored in the default config file (or in the alternative **config_file**); the second one will update only the specified triplet.
+
+**multipackager.py** *[--config config_file]* clearcache  
+**multipackager.py** *[--config config_file]* clearcache {debian|ubuntu|fedora} version_name {i386|amd64}  
+
+These commands deletes the operating system caches. Can delete all the triplets specified in the config file, or an specific triplet.
 
 
 ## CONTACTING THE AUTHOR ##

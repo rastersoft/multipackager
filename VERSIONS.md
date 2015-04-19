@@ -1,6 +1,9 @@
 0.6
  * Added support for Fedora (RPM) packages
  * Allows to specify different triplets for binary and python projects
+ * Takes into account the package name for python projects too
+ * Allows to delete the caches
+ * Added missing dependencies
  * Bug fixes
 0.5 (2015/04/18)
  * Better command line parsing options

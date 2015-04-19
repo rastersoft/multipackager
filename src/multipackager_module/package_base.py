@@ -22,7 +22,6 @@ import subprocess
 import os
 import shutil
 import re
-import sys
 
 class package_base(object):
 
@@ -32,6 +31,10 @@ class package_base(object):
         self.distro_type = distro_type
         self.distro_name = distro_name
         self.architecture = architecture
+        self.project_name = "project"
+        self.project_version = "1.0"
+        self.project_release = "1"
+        self.python2 = False
 
         # name of the CHROOT environment to use
         self.chroot_name = self.distro_type+"_chroot_"+self.distro_name+"_"+self.architecture
@@ -92,6 +95,14 @@ class package_base(object):
         shutil.rmtree(backup_path, ignore_errors=True)
 
         return False
+
+
+    def clear_cache(self):
+
+        if not os.path.exists(self.base_path):
+            return
+
+        shutil.rmtree(self.base_path, ignore_errors = True)
 
 
     def prepare_environment(self):
@@ -232,8 +243,16 @@ class package_base(object):
         found = False
         name_re = re.compile('\s*,*\s*name *= *')
         version_re = re.compile('\s*,*\s*version *= *')
+        first_line = True
+        self.python2 = True
         for line in f:
             line = line.strip()
+            if (first_line):
+                if -1 == line.find("python3"):
+                    self.python2 = True
+                else:
+                    self.python2 = False
+            first_line = False
             pos = line.find("#")
             if pos != -1:
                 line = line[:pos]

@@ -47,12 +47,14 @@ def print_usage(doexit = True):
     print ("Multipackager")
     print ("Version {:s}".format(version))
     print ("Usage:")
-    print ("multipackager.py project_folder [--config config_file]")
-    print ("multipackager.py project_folder [--config config_file] {debian|ubuntu} version_name {i386|amd64}")
-    print ("multipackager.py shell [--config config_file] vm_folder {i386|amd64}")
-    print ("multipackager.py shell [--config config_file] vm_folder {debian|ubuntu} version_name {i386|amd64}")
-    print ("multipackager.py update [--config config_file]")
-    print ("multipackager.py update [--config config_file] {debian|ubuntu} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] project_folder")
+    print ("multipackager.py [--config config_file] project_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] shell vm_folder {i386|amd64}")
+    print ("multipackager.py [--config config_file] shell vm_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] update")
+    print ("multipackager.py [--config config_file] update {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] clearcache")
+    print ("multipackager.py [--config config_file] clearcache {debian|ubuntu|fedora} version_name {i386|amd64}")
 
     if (doexit):
         sys.exit(-1)
@@ -102,7 +104,7 @@ def build_project(config,project_path):
 
         package_name = distro.get_package_name(project_path)
         if (package_name == True):
-            print("Can't get the package name")
+            print(_("Can't get the package name"))
             sys.exit(-1)
 
         if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
@@ -218,6 +220,33 @@ def update_envs(argv,config):
         distro.update_environment()
 
 
+def clearcache(argv,config):
+
+    nparams = len(argv)
+
+    if (nparams != 2) and (nparams != 5):
+        print_usage()
+
+    retval = config.read_config_file()
+    if (retval):
+        sys.exit(-1)
+
+    if (nparams == 5):
+        retval = config.read_config_file()
+        config.delete_distros()
+        config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
+        retval = False
+
+    for element in config.distros:
+
+        distroclass = get_distro_object(element["distro"])
+
+        # create a DISTRO object of the right type
+        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
+        # update the packages in the cached environment
+        distro.clear_cache()
+
+
 config = multipackager_module.configuration.configuration()
 
 args = config.parse_args(sys.argv)
@@ -233,6 +262,10 @@ if (args[1] == "shell"):
 
 if (args[1] == "update"):
     update_envs(args,config)
+    sys.exit(0)
+
+if (args[1] == "clearcache"):
+    clearcache(args,config)
     sys.exit(0)
 
 nparams = len(args)

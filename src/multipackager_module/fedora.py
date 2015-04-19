@@ -30,9 +30,6 @@ class fedora (multipackager_module.package_base.package_base):
             architecture = "x86_64"
 
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture)
-        self.project_name = "project"
-        self.project_version = "1.0"
-        self.project_release = "1"
 
 
     def check_path_in_builds(self,project_path):
@@ -246,7 +243,7 @@ class fedora (multipackager_module.package_base.package_base):
         for f in files:
             if f[-11:] == ".noarch.rpm":
                 origin_name = os.path.join(destination_dir,f)
-                final_name = os.path.join(os.getcwd(),"{:s}.{:s}{:s}.noarch.rpm".format(f[:-11],self.distro_type,self.distro_name))
+                final_name = os.path.join(os.getcwd(),self.get_package_name(self.build_path))
                 if (os.path.exists(final_name)):
                     os.remove(final_name)
                 if os.path.isdir(origin_name):
