@@ -218,7 +218,7 @@ nparams = len(args)
 if (nparams != 2) and (nparams != 5):
     print_usage()
 
-project_folder = sys.argv[1]
+project_folder = args[1]
 config.set_project_path(project_folder)
 
 if config.read_config_file():
@@ -228,7 +228,7 @@ if (nparams == 5):
     # read all the configuration to set all the parameters
     retval = config.read_config_file()
     config.delete_distros()
-    config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
+    config.append_distro(args[2], args[3] ,args[4])
     retval = False
 
 build_project(config,project_folder)
