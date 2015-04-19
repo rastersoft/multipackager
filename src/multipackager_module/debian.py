@@ -189,9 +189,29 @@ class debian (multipackager_module.package_base.package_base):
     def build_python(self):
         """ Builds a package for a python project """
 
+        destination_dir = os.path.join(self.build_path,"deb_dist")
+        shutil.rmtree(destination_dir, ignore_errors = True)
+
         if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py --command-packages=stdeb.command bdist_deb"')):
             return True
         return False
+
+
+    def copy_debs(self,destination_dir):
+
+        files = os.listdir(destination_dir)
+        for f in files:
+            if f[-4:] == ".deb":
+                origin_name = os.path.join(destination_dir,f)
+                final_name = os.path.join(os.getcwd(),"{:s}.{:s}{:s}.deb".format(f[:-4],self.distro_type,self.distro_name))
+                if (os.path.exists(final_name)):
+                    os.remove(final_name)
+                if os.path.isdir(origin_name):
+                    if not self.copy_debs(origin_name):
+                        return False
+                shutil.move(origin_name, final_name)
+                return False
+        return True
 
 
     def build_package(self):
@@ -200,15 +220,8 @@ class debian (multipackager_module.package_base.package_base):
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
             destination_dir = os.path.join(self.build_path,"deb_dist")
-            files = os.listdir(destination_dir)
-            for f in files:
-                if f[-4:] == ".deb":
-                    final_name = os.path.join(os.getcwd(),"{:s}.{:s}{:s}.deb".format(f[:-4],self.distro_type,self.distro_name))
-                    if (os.path.exists(final_name)):
-                        os.remove(final_name)
-                    shutil.move(os.path.join(destination_dir,f), final_name)
-                    return False
-            return True
+            return self.copy_debs(destination_dir)
+
 
         package_path = os.path.join(self.working_path,"install_root","DEBIAN")
         os.makedirs(package_path)

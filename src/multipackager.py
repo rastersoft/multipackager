@@ -22,8 +22,11 @@ import os
 import gettext
 import locale
 import multipackager_module.debian
+import multipackager_module.fedora
 import multipackager_module.configuration
 import multipackager_module.package_base
+
+import pkg_resources
 
 gettext.bindtextdomain("multipackager","/usr/share/locale")
 try:
@@ -35,8 +38,7 @@ gettext.install("multipackager","/usr/share/locale")
 
 _ = gettext.gettext
 
-version = "0.5"
-
+version = str(pkg_resources.require("multipackager")[0].version)
 
 def print_usage(doexit = True):
 
@@ -66,6 +68,9 @@ def get_distro_object(distro_name):
 
     if (distro_name == "debian") or (distro_name == "ubuntu"):
         return multipackager_module.debian.debian
+
+    if (distro_name == "fedora"):
+        return multipackager_module.fedora.fedora
 
     print(_("Distro name {:s} unknown. Aborting.").format(distro_name))
     sys.exit(-1)
@@ -103,8 +108,10 @@ def build_project(config,project_path):
         if (not distro.build_project(project_path)):
             # if there are no errors, create the package and copy it to the current directory
             if distro.build_package():
+                print (_("Failed to build the packages"))
                 sys.exit(-1)
-            built.append(package_name)
+            if (package_name != None):
+                built.append(package_name)
         # remove temporary data
         distro.cleanup()
 
@@ -211,7 +218,7 @@ nparams = len(args)
 if (nparams != 2) and (nparams != 5):
     print_usage()
 
-project_folder = sys.argv[1]
+project_folder = args[1]
 config.set_project_path(project_folder)
 
 if config.read_config_file():
@@ -221,7 +228,7 @@ if (nparams == 5):
     # read all the configuration to set all the parameters
     retval = config.read_config_file()
     config.delete_distros()
-    config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
+    config.append_distro(args[2], args[3] ,args[4])
     retval = False
 
 build_project(config,project_folder)

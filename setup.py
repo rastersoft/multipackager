@@ -12,7 +12,7 @@ except:
 def get_data_files():
     data_files = [
         #(os.path.join('share', 'doc','multipackager'), ['doc']),
-        (os.path.join('share', 'man','man1'), ['multipackager.1']),
+        (os.path.join('share', 'man','man1'), ['multipackager.1.gz']),
     ]
 
     for lang_name in [f for f in os.listdir('locale')]:
@@ -49,27 +49,12 @@ def compile_translations():
 
 compile_translations()
 
-os.system("pandoc -s -f markdown_github -t man -o multipackager.1 README.md")
-
-current_version = "0.2"
-
-config_data = open("src/multipackager.py","r")
-for line in config_data:
-    line = line.strip()
-    if (line.startswith("version =")):
-        pos = line.find('"')
-        if pos == -1:
-            continue
-        current_version = line[pos+1:-1].replace(" ","").lower().replace("beta",".beta")
-        break
-config_data.close()
-
-#here = os.path.abspath(os.path.dirname(__file__))
+os.system("pandoc -s -f markdown_github -t man -o multipackager.1.gz README.md")
 
 setup(
-    name='multipackager_module',
+    name='multipackager',
 
-    version=current_version,
+    version='0.5',
 
     description='Simplifies the creation of Linux packages for multiple architectures and distributions.',
     long_description = "A tool to create packages for mutiple architectures and linux OS",

@@ -34,7 +34,7 @@ class configuration:
 
 
     def set_project_path(self,project_path):
-        
+
         self.project_path = project_path
 
 
@@ -71,7 +71,7 @@ class configuration:
                     print ("Error in line {:d}; incorrect number of parameters\n".format(line_counter))
                     has_error = True;
                     continue
-                if ((parameters[1] != "debian") and (parameters[1] != "ubuntu")) :
+                if ((parameters[1] != "debian") and (parameters[1] != "ubuntu") and (parameters[1] != "fedora")) :
                     print ("Error in line {:d}: {:s} is not a valid linux distribution\n".format(line_counter,parameters[1]))
                     has_error = True;
                     continue
@@ -109,7 +109,7 @@ class configuration:
 
         if args_size == 0:
             return []
-        
+
         if args[0][0] != "-":
             retval = self.parse_args(args[1:])
             if retval == None:
