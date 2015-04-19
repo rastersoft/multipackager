@@ -61,6 +61,8 @@ The configuration file is stored, by default, at **/etc/multipackager/config.cfg
 
     distro: type name architecture  
     distro...  
+    python_distro: type name architecture  
+    python_distro...  
     cache_path: path  
     working_path: path  
     shell: path/program
@@ -69,7 +71,9 @@ The configuration file is stored, by default, at **/etc/multipackager/config.cfg
 
 All the lines are optional.
 
-Each **distro** line contains a distro triplet, specifying an OS to which, by default, we want to build packages. We can specify as many distros as we want.
+Each **distro** line contains a distro triplet, specifying an OS to which, by default, we want to build packages for *binary* projects. We can specify as many triplets as we want, each one in its own line.
+
+Each **python_distro** line contains a distro triplet, specifying an OS to which, by default, we want to build packages for *python* projects. We can specify as many triplets as we want, each one in its own line.
 
 The **cache_path** specifies where to store the cached base systems. If this line doesn't exists, multipackager will use **/var/opt/multipackager**.
 

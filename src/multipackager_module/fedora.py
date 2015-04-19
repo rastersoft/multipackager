@@ -100,7 +100,8 @@ class fedora (multipackager_module.package_base.package_base):
 
         os.makedirs(os.path.join(tmp_path,"var","lib","rpm"))
 
-        command = "yum -y --config={:s} --releasever={:s} --nogpg --installroot={:s} --disablerepo='*' --enablerepo=fedora install fedora-release bash yum".format(yumcfgpath,self.distro_name,tmp_path)
+        packages = "fedora-release bash yum util-linux"
+        command = "yum -y --config={:s} --releasever={:s} --nogpg --installroot={:s} --disablerepo='*' --enablerepo=fedora install {:s}".format(yumcfgpath,self.distro_name,tmp_path,packages)
         if (0 != self.run_external_program(command)):
             shutil.rmtree(tmp_path, ignore_errors=True)
             return True # error!!!
@@ -110,8 +111,10 @@ class fedora (multipackager_module.package_base.package_base):
 
         # for some reason, the RPM database is not complete, so it is a must to reinstall everything from inside the chroot environment
         # umount /sys to avoid failure due to filesystem.rpm
-        command = 'bash -c "umount /sys && yum -y --releasever={:s} install fedora-release bash yum"'.format(self.distro_name)
-        self.run_chroot(tmp_path, command)
+        command = 'bash -c "umount /sys && yum -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
+        if (0 != self.run_chroot(tmp_path, command)):
+            shutil.rmtree(tmp_path, ignore_errors=True)
+            return True # error!!!
 
         os.sync()
         os.rename(tmp_path,self.base_path) # rename the folder to the definitive name
@@ -137,6 +140,9 @@ class fedora (multipackager_module.package_base.package_base):
 
 
     def read_specs_data(self,working_path):
+
+        if working_path == None:
+            return
 
         self.dependencies = []
         self.dependencies.append("rpm-build")

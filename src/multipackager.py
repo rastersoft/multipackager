@@ -85,7 +85,16 @@ def build_project(config,project_path):
     built = []
     skipped = []
 
+    if (os.path.exists(os.path.join(project_path,"setup.py"))):
+        is_python = True
+    else:
+        is_python = False
+
     for element in config.distros:
+
+        if ((is_python) and (element["type"] == "binary")) or ((not is_python) and (element["type"] == "python")):
+            continue
+
         distroclass = get_distro_object(element["distro"])
 
         # create a DISTRO object of the right type
@@ -187,7 +196,20 @@ def update_envs(argv,config):
         config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
         retval = False
 
+    updated = []
+
     for element in config.distros:
+
+        found = False
+        for l in updated:
+            if (l["distro"] == element["distro"]) and (l["name"] == element["name"]) and (l["architecture"] == element["architecture"]):
+                found = True
+                break
+        if found:
+            continue
+
+        updated.append(element)
+
         distroclass = get_distro_object(element["distro"])
 
         # create a DISTRO object of the right type

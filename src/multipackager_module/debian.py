@@ -104,6 +104,10 @@ class debian (multipackager_module.package_base.package_base):
             f.write("deb http://archive.ubuntu.com/ubuntu/ {:s} main restricted universe multiverse\n".format(self.distro_name))
         f.close()
 
+        command = 'apt-get update'
+        if (0 != self.run_chroot(tmp_path,command)):
+            return True # error!!!
+
         os.sync()
         os.rename(tmp_path,self.base_path) # rename the folder to the definitive name
         os.sync()

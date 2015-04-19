@@ -43,9 +43,9 @@ class configuration:
         self.distros = []
 
 
-    def append_distro(self, distro, name,architecture):
+    def append_distro(self, distro, name,architecture,dtype = "all"):
 
-        self.distros.append({"distro":distro, "name":name, "architecture":architecture})
+        self.distros.append({"distro":distro, "name":name, "architecture":architecture, "type":dtype})
 
 
     def read_config_file(self):
@@ -66,7 +66,7 @@ class configuration:
                 continue
             parameters = line.split(" ")
             nparams = len(parameters)
-            if (parameters[0] == "distro:"):
+            if (parameters[0] == "distro:") or (parameters[0] == "python_distro:"):
                 if (nparams != 4):
                     print ("Error in line {:d}; incorrect number of parameters\n".format(line_counter))
                     has_error = True;
@@ -75,7 +75,7 @@ class configuration:
                     print ("Error in line {:d}: {:s} is not a valid linux distribution\n".format(line_counter,parameters[1]))
                     has_error = True;
                     continue
-                self.append_distro(parameters[1], parameters[2], parameters[3])
+                self.append_distro(parameters[1], parameters[2], parameters[3], "binary" if (parameters[0] == "distro:") else "python")
             elif (parameters[0] == "cache_path:"):
                 if (nparams != 2):
                     print ("Error in line {:d}; incorrect number of parameters\n".format(line_counter))
