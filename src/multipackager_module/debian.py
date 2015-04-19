@@ -50,29 +50,30 @@ class debian (multipackager_module.package_base.package_base):
         """ Returns the final package name for the project specified, or None if can't be determined yet """
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
-            return None
+            self.read_python_setup(project_path)
+            package_name = "{:s}.{:s}_{:s}~{:s}0_all.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type)
+        else:
+            debian_path = self.check_path_in_builds(project_path)
+            if (debian_path == None):
+                return None
 
-        debian_path = self.check_path_in_builds(project_path)
-        if (debian_path == None):
-            return True
+            control_path = os.path.join(debian_path,"control")
+            if (not os.path.exists(control_path)):
+                return None
 
-        control_path = os.path.join(debian_path,"control")
-        if (not os.path.exists(control_path)):
-            return True
-
-        f = open (control_path,"r")
-        for line in f:
-            if line[:7] == "Source:":
-                self.project_name = line[7:].strip()
-                continue
-            if line[:8] == "Package:":
-                self.project_name = line[8:].strip()
-                continue
-            if line[:8] == "Version:":
-                self.project_version = line[8:].strip()
-                continue
-        f.close()
-        package_name = "{:s}.{:s}_{:s}~{:s}0_{:s}.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type,self.architecture)
+            f = open (control_path,"r")
+            for line in f:
+                if line[:7] == "Source:":
+                    self.project_name = line[7:].strip()
+                    continue
+                if line[:8] == "Package:":
+                    self.project_name = line[8:].strip()
+                    continue
+                if line[:8] == "Version:":
+                    self.project_version = line[8:].strip()
+                    continue
+            f.close()
+            package_name = "{:s}.{:s}_{:s}~{:s}0_{:s}.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type,self.architecture)
         return package_name
 
 
@@ -201,17 +202,17 @@ class debian (multipackager_module.package_base.package_base):
         return False
 
 
-    def copy_debs(self,destination_dir):
+    def copy_debs(self,destination_dir,package_name):
 
         files = os.listdir(destination_dir)
         for f in files:
             if f[-4:] == ".deb":
                 origin_name = os.path.join(destination_dir,f)
-                final_name = os.path.join(os.getcwd(),"{:s}.{:s}{:s}.deb".format(f[:-4],self.distro_type,self.distro_name))
+                final_name = os.path.join(os.getcwd(),package_name)
                 if (os.path.exists(final_name)):
                     os.remove(final_name)
                 if os.path.isdir(origin_name):
-                    if not self.copy_debs(origin_name):
+                    if not self.copy_debs(origin_name,package_name):
                         return False
                 shutil.move(origin_name, final_name)
                 return False
@@ -224,7 +225,8 @@ class debian (multipackager_module.package_base.package_base):
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
             destination_dir = os.path.join(self.build_path,"deb_dist")
-            return self.copy_debs(destination_dir)
+            package_name = self.get_package_name(self.build_path)
+            return self.copy_debs(destination_dir,package_name)
 
 
         package_path = os.path.join(self.working_path,"install_root","DEBIAN")
@@ -258,7 +260,7 @@ class debian (multipackager_module.package_base.package_base):
         f2.close()
         os.remove(control_path)
         os.rename(control_path+".tmp",control_path)
-        package_name = self.get_package_name(os.path.join(self.working_path,"install_root"))
+        package_name = self.get_package_name(self.build_path)
         command = 'bash -c "cd / && dpkg -b /install_root {:s}"'.format(package_name)
         if (self.run_chroot(self.working_path, command)):
             return True

@@ -51,10 +51,10 @@ class fedora (multipackager_module.package_base.package_base):
 
         self.read_specs_data(project_path)
 
-        if (os.path.exists(os.path.join(project_path,"setup.py"))):
-            return None
-
-        return "{:s}.{:s}{:s}-{:s}-{:s}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release,self.architecture)
+        if os.path.exists(os.path.join(project_path,"setup.py")):
+            return "{:s}.{:s}{:s}-{:s}-{:s}.noarch.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release)
+        else:
+            return "{:s}.{:s}{:s}-{:s}-{:s}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release,self.architecture)
 
 
     def generate(self):
@@ -178,6 +178,7 @@ class fedora (multipackager_module.package_base.package_base):
                 if line[:8] == "release:":
                     self.project_release = line[8:].strip()
                     continue
+            self.read_python_setup(working_path)
         else:
             specs_path = self.check_path_in_builds(working_path)
 

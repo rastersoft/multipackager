@@ -21,6 +21,8 @@
 import subprocess
 import os
 import shutil
+import re
+import sys
 
 class package_base(object):
 
@@ -209,6 +211,51 @@ class package_base(object):
     def build_makefile(self):
 
         return self.run_chroot(self.working_path, 'bash -c "cd /project && make && make PREFIX=/usr DESTDIR=/install_root install"')
+
+
+    def get_string(self,line):
+        gen_string = re.compile("[\"'][^\"']+[\"']")
+        p = gen_string.match(line)
+        if p != None:
+            return p.group()[1:-1]
+        else:
+            return None
+
+
+    def read_python_setup(self,working_path):
+
+        final_path = os.path.join(working_path,"setup.py")
+        if not os.path.exists(final_path):
+            return
+
+        f = open(final_path,"r")
+        found = False
+        name_re = re.compile('\s*,*\s*name *= *')
+        version_re = re.compile('\s*,*\s*version *= *')
+        for line in f:
+            line = line.strip()
+            pos = line.find("#")
+            if pos != -1:
+                line = line[:pos]
+            if line[:5] == "setup":
+                found = True
+
+            if not found:
+                continue
+
+            p = name_re.match(line)
+            if p != None:
+                retval = self.get_string(line[p.end():])
+                if retval != None:
+                    self.project_name = retval
+                continue
+
+            p = version_re.match(line)
+            if p != None:
+                retval = self.get_string(line[p.end():])
+                if retval != None:
+                    self.project_version = retval
+                continue
 
 
     def cleanup(self):
