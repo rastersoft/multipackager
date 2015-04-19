@@ -224,10 +224,30 @@ class fedora (multipackager_module.package_base.package_base):
     def build_python(self):
         """ Builds a package for a python project """
 
+        destination_dir = os.path.join(self.build_path,"dist")
+        shutil.rmtree(destination_dir, ignore_errors = True)
+
         if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py bdist_rpm"')):
             return True
 
         return False
+
+
+    def copy_rpms(self,destination_dir):
+
+        files = os.listdir(destination_dir)
+        for f in files:
+            if f[-11:] == ".noarch.rpm":
+                origin_name = os.path.join(destination_dir,f)
+                final_name = os.path.join(os.getcwd(),"{:s}.{:s}{:s}.noarch.rpm".format(f[:-11],self.distro_type,self.distro_name))
+                if (os.path.exists(final_name)):
+                    os.remove(final_name)
+                if os.path.isdir(origin_name):
+                    if not self.copy_rpms(origin_name):
+                        return False
+                shutil.move(origin_name, final_name)
+                return False
+        return True
 
 
     def build_package(self):
@@ -235,10 +255,8 @@ class fedora (multipackager_module.package_base.package_base):
 
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
-            command = "cp -a {:s} {:s}".format(os.path.join(self.build_path,"dist/*.noarch.rpm"),os.getcwd())
-            if (self.run_external_program(command)):
-                return True
-            return False
+            destination_dir = os.path.join(self.build_path,"dist")
+            return self.copy_rpms(destination_dir)
 
         tmpfolder = self.check_path_in_builds(self.build_path)
         if (tmpfolder == None):
