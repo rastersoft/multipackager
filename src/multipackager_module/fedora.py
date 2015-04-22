@@ -178,6 +178,9 @@ class fedora (multipackager_module.package_base.package_base):
             self.read_python_setup(working_path)
         else:
             specs_path = self.check_path_in_builds(working_path)
+            if (specs_path == None):
+                print(_("No rpm folder. Aborting."))
+                return True
 
             if not (os.path.exists(specs_path)):
                 print(_("The project lacks the rpmbuild/SPECS folder. Aborting."))

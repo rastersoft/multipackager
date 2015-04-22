@@ -55,8 +55,8 @@ class configuration:
         try:
             cfg = open(self.config_file,"r")
         except:
-            print("Can't find the configuration file")
-            return True
+            print(_("Can't find the configuration file at {:s}. Using default values.").format(self.config_file))
+            return False
 
         line_counter = 0
         for line in cfg:

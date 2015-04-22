@@ -163,11 +163,28 @@ class debian (multipackager_module.package_base.package_base):
                 if (tmp[0] == ':') or (tmp[0] == '='):
                     tmp = tmp[1:].strip()
                 tmp = tmp.split(",")
-                for element in tmp:
-                    pos = element.find("(") # remove version info
-                    if (pos != -1):
-                        element = element[:pos]
-                    dependencies.append(element.strip())
+                for element2 in tmp:
+                    tmp2 = element2.split("|")
+                    # if it is a single package, just add it as-is
+                    if (len(tmp2) == 1):
+                        dependencies.append(element2.strip())
+                        continue
+                    # but if there are several optional packages, check each one and install the first found
+                    list_p = ""
+                    found = False
+                    for element in tmp2:
+                        pos = element.find("(") # remove version info
+                        if (pos != -1):
+                            element = element[:pos]
+                        list_p += " "+element
+                        command = "apt-cache show {:s}".format(element)
+                        if (0 == self.run_chroot(self.working_path, command)):
+                            dependencies.append(element.strip())
+                            found = True
+                            break
+                    if not found:
+                        print (_("Cant find any of these packages in the guest system:{:s}").format(list_p))
+                        return True
                 continue
             if line[:7] == "Source:":
                 self.project_name = line[7:].strip()

@@ -1,4 +1,7 @@
-0.6
+0.7 (2015/04/20)
+ * Now doesn't fail if the configure file doesn't exists.
+ * Translated all sentences
+0.6 (2015/04/19)
  * Added support for Fedora (RPM) packages
  * Allows to specify different triplets for binary and python projects
  * Takes into account the package name for python projects too

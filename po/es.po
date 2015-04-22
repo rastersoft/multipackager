@@ -4,13 +4,12 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # Sergio Costas <rastersoft@gmail.com>, 2015.
 #
-#: ../src/multipackager_module/debian.py:36
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-04-14 01:04+0200\n"
-"PO-Revision-Date: 2015-04-14 01:04+0200\n"
+"POT-Creation-Date: 2015-04-20 16:57+0200\n"
+"PO-Revision-Date: 2015-04-20 16:59+0200\n"
 "Last-Translator: Sergio Costas <rastersoft@gmail.com>\n"
 "Language-Team: Español; Castellano <>\n"
 "Language: \n"
@@ -20,68 +19,91 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
-#: ../src/multipackager.py:46
+#: ../src/multipackager.py:65
 msgid ""
 "\n"
 "This program must be run as root\n"
-msgstr "Este programa tiene que ejecutarse como root"
+msgstr ""
+"\n"
+"Este programa tiene que ejecutarse como root\n"
 
-#: ../src/multipackager.py:71
+#: ../src/multipackager.py:77
+msgid "Distro name {:s} unknown. Aborting."
+msgstr "Nombre de distribución {:s} desconocido. Abortando."
+
+#: ../src/multipackager.py:107
+msgid "Can't get the package name"
+msgstr "Imposible obtener el nombre del paquete"
+
+#: ../src/multipackager.py:116
 msgid "Error when creating the working environment"
 msgstr "Error al crear el entorno de trabajo"
 
-#: ../src/multipackager.py:84
+#: ../src/multipackager.py:122
+msgid "Failed to build the packages"
+msgstr "No se han podido generar los paquetes"
+
+#: ../src/multipackager.py:130
 msgid "Built packages:"
 msgstr "Paquetes generados:"
 
-#: ../src/multipackager.py:88
+#: ../src/multipackager.py:134
 msgid "Built packages: None"
 msgstr "Paquetes generados: Ninguno"
 
-#: ../src/multipackager.py:90
+#: ../src/multipackager.py:136
 msgid "Skipped packages:"
 msgstr "Paquetes omitidos:"
 
-#: ../src/multipackager.py:94
+#: ../src/multipackager.py:140
 msgid "Skipped packages: none"
 msgstr "Paquetes omitidos: ninguno"
 
-#: ../src/multipackager.py:107
+#: ../src/multipackager.py:157
 msgid "The specified CHROOT environment at {:s} doesn't exists. Aborting."
 msgstr "El entorno CHROOT especificado en {:s} no existe. Abortando."
 
-#: ../src/multipackager.py:126
+#: ../src/multipackager.py:175
 msgid "The project folder exists; launching the shell without copying data"
 msgstr ""
 "La carpeta de proyecto ya existe; lanzando la shell sin copiar los datos"
 
-#: ../src/multipackager_module/package_base.py:40
+#: ../src/multipackager_module/configuration.py:58
+msgid "Can't find the configuration file at {:s}. Using default values."
+msgstr ""
+"No se ha encontrado el fichero de configuración en {:s}. Usando los valores "
+"por defecto."
+
+#: ../src/multipackager_module/configuration.py:122
+msgid "--config parameter must be followed by a path"
+msgstr "El parámetro --config tiene que ir seguido de una ruta a un fichero"
+
+#: ../src/multipackager_module/package_base.py:59
 msgid "Generating the environment for {:s}"
 msgstr "Creando el entorno para {:s}"
 
-#. error!!!
-#: ../src/multipackager_module/package_base.py:44
+#: ../src/multipackager_module/package_base.py:75
 msgid "Generating a backup for {:s}"
 msgstr "Creando una copia de {:s}"
 
-#: ../src/multipackager_module/package_base.py:56
+#: ../src/multipackager_module/package_base.py:87
 msgid "Updating {:s}"
 msgstr "Actualizando {:s}"
 
-#: ../src/multipackager_module/package_base.py:73
-#: ../src/multipackager_module/package_base.py:90
+#: ../src/multipackager_module/package_base.py:115
+#: ../src/multipackager_module/package_base.py:135
 msgid "Creating working copy of {:s}"
 msgstr "Creando una copia de {:s}"
 
-#: ../src/multipackager_module/package_base.py:146
+#: ../src/multipackager_module/package_base.py:194
 msgid "Unknown build system"
 msgstr "Sistema de compilación desconocido"
 
-#: ../src/multipackager_module/package_base.py:187
+#: ../src/multipackager_module/package_base.py:288
 msgid "Launching {:s}"
 msgstr "Lanzando {:s}"
 
-#: ../src/multipackager_module/debian.py:124
+#: ../src/multipackager_module/debian.py:152
 msgid "There is no DEBIAN/UBUNTU folder with the package specific data"
 msgstr ""
 "No existe una carpeta DEBIAN/UBUNTU con los datos específicos para el paquete"
