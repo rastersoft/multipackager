@@ -1,3 +1,5 @@
+0.8 (2015/04/22)
+ * Now supports alternative packages for deb (packagea | packageb)
 0.7 (2015/04/20)
  * Now doesn't fail if the configure file doesn't exists.
  * Translated all sentences
