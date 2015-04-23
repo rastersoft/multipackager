@@ -221,7 +221,7 @@ class package_base(object):
 
     def build_makefile(self):
 
-        return self.run_chroot(self.working_path, 'bash -c "cd /project && make && make PREFIX=/usr DESTDIR=/install_root install"')
+        return self.run_chroot(self.working_path, 'bash -c "cd /project && make clean && make && make PREFIX=/usr DESTDIR=/install_root install"')
 
 
     def get_string(self,line):
