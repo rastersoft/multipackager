@@ -98,7 +98,7 @@ class fedora (multipackager_module.package_base.package_base):
         os.makedirs(os.path.join(tmp_path,"var","lib","rpm"))
 
         packages = "fedora-release bash yum util-linux"
-        command = "yum -y --config={:s} --releasever={:s} --nogpg --installroot={:s} --disablerepo='*' --enablerepo=fedora install {:s}".format(yumcfgpath,self.distro_name,tmp_path,packages)
+        command = "yum -y --config={:s} --releasever={:s} --nogpg --installroot={:s} install {:s}".format(yumcfgpath,self.distro_name,tmp_path,packages)
         if (0 != self.run_external_program(command)):
             shutil.rmtree(tmp_path, ignore_errors=True)
             return True # error!!!
@@ -129,8 +129,8 @@ class fedora (multipackager_module.package_base.package_base):
         """ Ensures that the chroot environment is updated with the lastest packages """
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
-        command = 'yum --update'
-        if (0 != self.run_external_program(command)):
+        command = 'yum update'
+        if (0 != self.run_chroot(self.base_path,command)):
             return True # error!!!
 
         return False
@@ -246,12 +246,31 @@ class fedora (multipackager_module.package_base.package_base):
         for f in files:
             if f[-11:] == ".noarch.rpm":
                 origin_name = os.path.join(destination_dir,f)
-                final_name = os.path.join(os.getcwd(),self.get_package_name(self.build_path))
-                if (os.path.exists(final_name)):
-                    os.remove(final_name)
                 if os.path.isdir(origin_name):
                     if not self.copy_rpms(origin_name):
                         return False
+                    continue
+                final_name = os.path.join(os.getcwd(),self.get_package_name(self.build_path))
+                if (os.path.exists(final_name)):
+                    os.remove(final_name)
+                shutil.move(origin_name, final_name)
+                return False
+        return True
+
+
+    def copy_bin_rpms(self,destination_dir):
+
+        files = os.listdir(destination_dir)
+        for f in files:
+            origin_name = os.path.join(destination_dir,f)
+            if os.path.isdir(origin_name):
+                if not self.copy_bin_rpms(origin_name):
+                    return False
+                continue
+            final_name = os.path.join(os.getcwd(),self.get_package_name(self.build_path))
+            if (os.path.exists(final_name)):
+                os.remove(final_name)
+            if f[-4:] == ".rpm":
                 shutil.move(origin_name, final_name)
                 return False
         return True
@@ -339,9 +358,4 @@ class fedora (multipackager_module.package_base.package_base):
         if (self.run_chroot(self.working_path, command)):
             return True
 
-        command = "cp -a {:s} {:s}".format(os.path.join(self.working_path,"rpmpackage/RPMS/*"),os.path.join(os.getcwd(),self.get_package_name(self.build_path)))
-        if (self.run_external_program(command)):
-            return True
-
-        return False
-
+        return self.copy_bin_rpms(os.path.join(self.working_path,"rpmpackage","RPMS"))
