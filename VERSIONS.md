@@ -1,6 +1,7 @@
 0.9 (2015/04/23)
  * Now the update of RPM caches works fine
  * Now copies fine the RPM binary packages, instead of copying the folder containing them
+ * Now clears a classic MAKE project before building it
 0.8 (2015/04/22)
  * Now supports alternative packages for deb (packagea | packageb)
 0.7 (2015/04/20)
