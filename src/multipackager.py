@@ -124,7 +124,7 @@ def build_project(config,project_path):
             # build the project itself
             if not distro.build_project(project_path):
                 # if there are no errors, create the package and copy it to the current directory
-                if distro.build_package():
+                if distro.build_package(project_path):
                     print (_("Failed to build the packages"))
                     sys.exit(-1)
                 if package_name != None:

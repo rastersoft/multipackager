@@ -283,7 +283,7 @@ class fedora (multipackager_module.package_base.package_base):
         return True
 
 
-    def build_package(self):
+    def build_package(self,project_path):
         """ Takes the binaries located at /install_root and build a package """
 
         setup_python = os.path.join(self.build_path,"setup.py")

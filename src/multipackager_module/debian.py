@@ -241,7 +241,7 @@ class debian (multipackager_module.package_base.package_base):
         return True
 
 
-    def build_package(self):
+    def build_package(self,project_path):
         """ Takes the binaries located at /install_root and build a package """
 
         setup_python = os.path.join(self.build_path,"setup.py")
@@ -250,10 +250,11 @@ class debian (multipackager_module.package_base.package_base):
             package_name = self.get_package_name(self.build_path)
             return self.copy_debs(destination_dir,package_name)
 
+        debian_path = self.check_path_in_builds(project_path)
 
         package_path = os.path.join(self.working_path,"install_root","DEBIAN")
         os.makedirs(package_path)
-        command = "cp -a {:s} {:s}".format(os.path.join(self.debian_path,"*"),package_path)
+        command = "cp -a {:s} {:s}".format(os.path.join(debian_path,"*"),package_path)
         if self.run_external_program(command):
             return True
 
