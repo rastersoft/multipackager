@@ -1,3 +1,5 @@
+0.10 (2015/04/24)
+ * Now ensures that the permissions and uid and gid in a package are the same than in the file system, to avoid conflicts in binary RPM packages
 0.9 (2015/04/23)
  * Now the update of RPM caches works fine
  * Now copies fine the RPM binary packages, instead of copying the folder containing them

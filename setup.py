@@ -54,7 +54,7 @@ os.system("pandoc -s -f markdown_github -t man -o multipackager.1.gz README.md")
 setup(
     name='multipackager',
 
-    version='0.9',
+    version='0.10',
 
     description='Simplifies the creation of Linux packages for multiple architectures and distributions.',
     long_description = "A tool to create packages for mutiple architectures and linux OS",
