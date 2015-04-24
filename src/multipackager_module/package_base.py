@@ -22,10 +22,41 @@ import subprocess
 import os
 import shutil
 import re
+import functools
+
+def call_with_cache(func):
+
+    @functools.wraps(func)
+    def inner(*args):
+
+        self = args[0]
+        path = args[1]
+
+        backup_path = path+".backup"
+
+        print(_("Generating a backup for {:s}").format(path))
+
+        if self.copy_cache(path,backup_path):
+            return True
+
+        os.sync() # sync disks
+
+        if (func(*args)):
+            shutil.rmtree(self.base_path, ignore_errors=True)
+            os.rename(backup_path,self.base_path) # rename the backup folder to the original name
+            os.sync() # sync disks
+            return True # error!
+
+        shutil.rmtree(backup_path, ignore_errors=True)
+        os.sync() # sync disks
+        return False
+
+    return inner
+
 
 class package_base(object):
 
-    def __init__(self, configuration, distro_type, distro_name, architecture):
+    def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
         self.configuration = configuration
         self.distro_type = distro_type
@@ -37,111 +68,114 @@ class package_base(object):
         self.python2 = False
 
         # name of the CHROOT environment to use
-        self.chroot_name = self.distro_type+"_chroot_"+self.distro_name+"_"+self.architecture
+        self.base_chroot_name = self.distro_type+"_chroot_"+self.distro_name+"_"+self.architecture
+        # path to the origin CHROOT environment to use (the one with only the base system)
+        self.base_cache_path = os.path.join(self.configuration.cache_path,self.base_chroot_name)
 
-        # path of the base CHROOT enviromnent to use
+
+        if (cache_name != None):
+            self.chroot_name = self.base_chroot_name+"_"+cache_name
+        else:
+            self.chroot_name = self.base_chroot_name
+
+        # path of the base CHROOT enviromnent to use (the one which will be copied to the final one)
         self.base_path = os.path.join(self.configuration.cache_path,self.chroot_name)
 
         if (self.base_path[-1] == os.path.sep):
             self.base_path = self.base_path[:-1] # remove the last "/" if it exists
 
-        # path of the working copy
+        # path of the working copy, where the project has been copied for being build
         self.working_path = None
 
         # path of the project copy (outside the chroot environment; inside is always "/project")
         self.build_path = None
 
 
-    def check_cache(self):
+    def copy_cache(self,origin_path,destination_path, force_delete = True):
 
-        # If there is no base system, create it
-        if (not os.path.exists(self.base_path)):
-            print(_("Generating the environment for {:s}").format(self.chroot_name))
-            if self.generate():
+        if (os.path.exists(destination_path)) and (force_delete == False):
+            return False # don't delete it
+
+        # Create the destination folder and all the previous folders, if needed
+        if not os.path.exists(destination_path):
+            os.makedirs(destination_path)
+
+        # remove data inside destination path
+        shutil.rmtree(destination_path, ignore_errors=True)
+
+        # copy the base system to the path where we want to work with to generate the package
+        if (0 != self.run_external_program("cp -a {:s} {:s}".format(origin_path,destination_path))):
+            return True # error!!!
+
+        return False
+
+
+    def add_dns(self,path):
+
+        # Add OpenDNS
+        f = open(os.path.join(path,"etc","resolv.conf"),"w")
+        f.write("# OpenDNS IPv4 nameservers\nnameserver 208.67.222.222\nnameserver 208.67.220.220\n# OpenDNS IPv6 nameservers\nnameserver 2620:0:ccc::2\nnameserver 2620:0:ccd::2\n")
+        f.close()
+
+
+    def check_environment(self):
+
+        """ Ensures that both caches (the base_cache_path, for shells, containing the bare minimum system, and the base_path
+            with an updated system) exists """
+
+        if not os.path.exists(self.base_cache_path):
+            print(_("Generating the environment for {:s}").format(self.base_chroot_name))
+            if self.generate(self.base_cache_path):
+                print(_("Failed to initializate environment for {:s}").format(self.base_chroot_name))
+                return True # error!!!
+            self.add_dns(self.base_cache_path)
+
+        if not os.path.exists(self.base_path):
+            if self.copy_cache(self.base_cache_path,self.base_path):
+                print(_("Failed to initializate environment for {:s}").format(self.base_chroot_name))
                 return True # error!!!
 
         return False
 
 
-    def update_environment(self):
+    def prepare_working_path(self,final_path = None):
 
-        """ Ensures that the environment is updated with the last packages """
+        """ Creates a working copy of the chroot environment to keep the original untouched.
+            If final_path is None, will copy the compilation cache (base_path) to a working path; if not,
+            will copy the bare minimum cache for shells (base_cache_path) to that path """
 
-        backup_path = self.base_path+".backup"
+        if final_path == None:
+            self.working_path = os.path.join(self.configuration.working_path,self.base_chroot_name)
+            original_path = self.base_path
+        else:
+            self.working_path = final_path
+            original_path = self.base_cache_path
 
-        if self.check_cache():
-            return True
-
-        print(_("Generating a backup for {:s}").format(self.chroot_name))
-        shutil.rmtree(backup_path, ignore_errors=True) # delete any backup that already exists
-        if (0 != self.run_external_program("cp -a {:s} {:s}".format(self.base_path,backup_path))): # do a backup of the base system, just in case the update fails
-            shutil.rmtree(backup_path, ignore_errors=True)
+        shutil.rmtree(self.working_path, ignore_errors=True)
+        if (0 != self.run_external_program("cp -a {:s} {:s}".format(original_path,self.working_path))): # copy the base system to the path where we want to work with to generate the package
+            print(_("Failed to create the working environment at {:s} from {:s}").format(self.working_path,original_path))
             return True # error!!!
 
-        os.sync() # sync disks
-        # Add OpenDNS
-        f = open(os.path.join(self.base_path,"etc","resolv.conf"),"w")
-        f.write("# OpenDNS IPv4 nameservers\nnameserver 208.67.222.222\nnameserver 208.67.220.220\n# OpenDNS IPv6 nameservers\nnameserver 2620:0:ccc::2\nnameserver 2620:0:ccd::2\n")
-        f.close()
-
-        print(_("Updating {:s}").format(self.chroot_name))
-        if (self.update()): # error when updating!!! restore backup
-            shutil.rmtree(self.base_path, ignore_errors=True)
-            os.rename(backup_path,self.base_path) # rename the backup folder to the definitive name
-            os.sync() # sync disks
-            return True # error!
-
-        os.sync() # sync disks
-        shutil.rmtree(backup_path, ignore_errors=True)
-
-        return False
-
-
-    def clear_cache(self):
-
-        if not os.path.exists(self.base_path):
-            return
-
-        shutil.rmtree(self.base_path, ignore_errors = True)
-
-
-    def prepare_environment(self):
-
-        """ Creates a working copy of the chroot environment to keep the original untouched """
-
-        if self.check_cache():
-            return True
-
-        print(_("Creating working copy of {:s}").format(self.chroot_name))
-        if (not os.path.exists(self.configuration.working_path)):
-            os.makedirs(self.configuration.working_path)
-
-        shutil.rmtree(os.path.join(self.configuration.working_path,self.chroot_name), ignore_errors=True)
-        if (0 != self.run_external_program("cp -a {:s} {:s}".format(self.base_path,self.configuration.working_path))): # copy the base system to the path where we want to work with to generate the package
-            return True # error!!!
-
-        self.working_path = os.path.join(self.configuration.working_path,self.chroot_name)
         # environment ready
         return False
 
 
-    def copy_environment(self,final_path):
+    @call_with_cache
+    def update_environment(self,path):
 
-        """ Creates a working copy of the chroot environment to keep the original untouched """
+        """ Ensures that the environment is updated with the last packages """
 
-        if self.check_cache():
-            return True
+        print(_("Updating {:s}").format(self.base_chroot_name))
+        return self.update(path)
 
-        print(_("Creating working copy of {:s}").format(self.chroot_name))
-        if (not os.path.exists(final_path)):
-            os.makedirs(final_path)
 
-        if (0 != self.run_external_program("rm -rf {:s}".format(os.path.join(final_path,"*")))):
-            return True
-        if (0 != self.run_external_program("cp -a {:s} {:s}".format(os.path.join(self.base_path,"*"),final_path))): # copy the base system to the path where we want to work with to generate the package
-            return True # error!!!
+    def clear_cache(self):
 
-        return False
+        if os.path.exists(self.base_path):
+            shutil.rmtree(self.base_path, ignore_errors = True)
+
+        if os.path.exists(self.base_cache_path):
+            shutil.rmtree(self.base_cache_path, ignore_errors = True)
 
 
     def build_project(self,project_path):
@@ -155,11 +189,6 @@ class package_base(object):
         # copy the project folder inside the CHROOT environment, in the "/project" folder
 
         if (0 != self.run_external_program("cp -a {:s} {:s}".format(os.path.join(project_path,"*"),os.path.join(self.working_path,"project/")))):
-            return True # error!!!
-
-        # install the building dependencies
-
-        if (self.install_build_deps()):
             return True # error!!!
 
         # the compiled binaries will be installed in /install_root, inside the chroot environment
@@ -226,7 +255,7 @@ class package_base(object):
             if (self.run_chroot(self.working_path, 'bash -c "cd /project && ./autogen.sh"')):
                 return True
 
-        return self.run_chroot(self.working_path, 'bash -c "cd /project && ./configure --prefix=/usr && make && make DESTDIR=/install_root install"')
+        return self.run_chroot(self.working_path, 'bash -c "cd /project && ./configure --prefix=/usr && make clean && make && make DESTDIR=/install_root install"')
 
 
     def build_makefile(self):
@@ -289,7 +318,8 @@ class package_base(object):
 
     def cleanup(self):
 
-        shutil.rmtree(self.working_path)
+        if self.working_path != None:
+            shutil.rmtree(self.working_path)
         return False
 
 

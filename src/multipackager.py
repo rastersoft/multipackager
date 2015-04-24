@@ -100,7 +100,7 @@ def build_project(config,project_path):
         distroclass = get_distro_object(element["distro"])
 
         # create a DISTRO object of the right type
-        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
+        distro = distroclass(config,element["distro"],element["name"],element["architecture"],"builder")
 
         package_name = distro.get_package_name(project_path)
         if (package_name == True):
@@ -112,17 +112,23 @@ def build_project(config,project_path):
             continue
 
         # copy the environment to a working folder
-        if (distro.prepare_environment()):
-            print (_("Error when creating the working environment"))
+        if distro.check_environment():
             sys.exit(-1)
-        # install the packages needed for building the project, and build it
-        if (not distro.build_project(project_path)):
-            # if there are no errors, create the package and copy it to the current directory
-            if distro.build_package():
-                print (_("Failed to build the packages"))
+
+        # install the packages needed for building the project
+        if not distro.install_dependencies(project_path):
+
+            if distro.prepare_working_path():
                 sys.exit(-1)
-            if (package_name != None):
-                built.append(package_name)
+
+            # build the project itself
+            if not distro.build_project(project_path):
+                # if there are no errors, create the package and copy it to the current directory
+                if distro.build_package():
+                    print (_("Failed to build the packages"))
+                    sys.exit(-1)
+                if package_name != None:
+                    built.append(package_name)
         # remove temporary data
         distro.cleanup()
 
@@ -160,6 +166,9 @@ def launch_shell(argv,config):
         dtype = ""
         name = ""
         distro = multipackager_module.package_base.package_base(config,dtype,name,arch)
+        if distro.check_environment():
+            sys.exit(-1)
+        distro.working_path = env_path
     else:
         dtype = argv[3]
         name = argv[4]
@@ -167,10 +176,13 @@ def launch_shell(argv,config):
         distroclass = get_distro_object(dtype)
         # create a DISTRO object of the right type
         distro = distroclass(config,dtype,name,arch)
+        if distro.check_environment():
+            sys.exit(-1)
 
     if not os.path.exists(env_path):
-        distro.copy_environment(env_path)
+        distro.prepare_working_path(env_path)
     else:
+        distro.working_path = env_path
         if (nparams != 3):
             print(_("The project folder exists; launching the shell without copying data"))
 
@@ -215,9 +227,11 @@ def update_envs(argv,config):
         distroclass = get_distro_object(element["distro"])
 
         # create a DISTRO object of the right type
-        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
+        distro = distroclass(config,element["distro"],element["name"],element["architecture"],"builder")
+        if distro.check_environment():
+            continue
         # update the packages in the cached environment
-        distro.update_environment()
+        distro.update_environment(distro.base_path)
 
 
 def clearcache(argv,config):
@@ -242,7 +256,7 @@ def clearcache(argv,config):
         distroclass = get_distro_object(element["distro"])
 
         # create a DISTRO object of the right type
-        distro = distroclass(config,element["distro"],element["name"],element["architecture"])
+        distro = distroclass(config,element["distro"],element["name"],element["architecture"],"builder")
         # update the packages in the cached environment
         distro.clear_cache()
 

@@ -24,9 +24,9 @@ import multipackager_module.package_base
 
 class debian (multipackager_module.package_base.package_base):
 
-    def __init__(self, configuration, distro_type, distro_name, architecture):
+    def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
-        multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture)
+        multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture, cache_name)
 
 
     def check_path_in_builds(self,project_path):
@@ -75,11 +75,11 @@ class debian (multipackager_module.package_base.package_base):
         return package_name
 
 
-    def generate(self):
+    def generate(self,path):
         """ Ensures that the base system, to create a CHROOT environment, exists """
 
         # Create all, first, in a temporal folder
-        tmp_path = self.base_path+".tmp"
+        tmp_path = path+".tmp"
 
         shutil.rmtree(tmp_path, ignore_errors=True)
 
@@ -108,7 +108,7 @@ class debian (multipackager_module.package_base.package_base):
             return True # error!!!
 
         os.sync()
-        os.rename(tmp_path,self.base_path) # rename the folder to the definitive name
+        os.rename(tmp_path,path) # rename the folder to the definitive name
         os.sync()
 
         shutil.rmtree(tmp_path, ignore_errors=True)
@@ -116,44 +116,55 @@ class debian (multipackager_module.package_base.package_base):
         return False # no error
 
 
-    def update(self):
+    @multipackager_module.package_base.call_with_cache
+    def update(self,path):
 
         """ Ensures that the chroot environment is updated with the lastest packages """
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
 
-        retval = self.run_chroot(self.base_path,"apt-get update")
+        retval = self.run_chroot(path,"apt-get update")
         if (retval != 0):
             return True # error!!!!
 
-        retval = self.run_chroot(self.base_path,"apt-get dist-upgrade -y")
+        retval = self.run_chroot(path,"apt-get dist-upgrade -y")
         if (retval != 0):
             return True # error!!!!
 
         return False
 
 
-    def install_build_deps(self):
+    @multipackager_module.package_base.call_with_cache
+    def install_dependencies_full(self,path,dependencies):
+
+        command = "apt-get install -y"
+        for dep in dependencies:
+            command += " "+dep
+        return self.run_chroot(path, command)
+
+
+    def install_dependencies(self,project_path):
 
         """ Install the dependencies needed for building this package """
 
         dependencies = []
 
-        if (os.path.exists(os.path.join(self.build_path,"setup.py"))): # it is a python package
-            control_path = os.path.join(self.build_path,"stdeb.cfg")
+        if (os.path.exists(os.path.join(project_path,"setup.py"))): # it is a python package
+            control_path = os.path.join(project_path,"stdeb.cfg")
             dependencies.append("python3")
             dependencies.append("python3-stdeb")
             dependencies.append("python3-all")
             dependencies.append("python-all")
             dependencies.append("fakeroot")
         else:
-            self.debian_path = self.check_path_in_builds(self.build_path)
-            if self.debian_path == None:
+            debian_path = self.check_path_in_builds(project_path)
+            if debian_path == None:
                 print (_("There is no DEBIAN/UBUNTU folder with the package specific data"))
                 return True
 
-            control_path = os.path.join(self.debian_path,"control")
+            control_path = os.path.join(debian_path,"control")
             if (not os.path.exists(control_path)):
+                print (_("There is no CONTROL file with the package specific data"))
                 return True
 
         f = open (control_path,"r")
@@ -198,11 +209,7 @@ class debian (multipackager_module.package_base.package_base):
         f.close()
 
         if (len(dependencies) != 0):
-            command = "apt-get install -y"
-            for dep in dependencies:
-                command += " "+dep
-            if (self.run_chroot(self.working_path, command)):
-                return True
+            return self.install_dependencies_full(self.base_path,dependencies)
         return False
 
 
