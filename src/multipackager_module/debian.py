@@ -189,7 +189,7 @@ class debian (multipackager_module.package_base.package_base):
                             element = element[:pos]
                         list_p += " "+element
                         command = "apt-cache show {:s}".format(element)
-                        if (0 == self.run_chroot(self.working_path, command)):
+                        if (0 == self.run_chroot(self.base_path, command)):
                             dependencies.append(element.strip())
                             found = True
                             break
