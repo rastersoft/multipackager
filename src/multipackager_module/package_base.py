@@ -171,28 +171,38 @@ class package_base(object):
         # check the install system available
             # First, check if exists a shell file called 'multipackager_DISTROTYPE.sh' (like multipackager_debian.sh, or multipackager_ubuntu.sh)
         if (os.path.exists(os.path.join(self.build_path,specific_creator))):
-            return self.build_multipackager(specific_creator)
+            if self.build_multipackager(specific_creator):
+                return True
             # Now check if it exists a generic shell script called 'multipackager.sh'
         elif (os.path.exists(os.path.join(self.build_path,"multipackager.sh"))):
-            return self.build_multipackager("multipackager.sh")
+            if self.build_multipackager("multipackager.sh"):
+                return True
             # Check if it is a python program
         elif (os.path.exists(os.path.join(self.build_path,"setup.py"))):
-            return self.build_python()
+            if self.build_python():
+                return True
             # Check if it is an autoconf/automake with the 'configure' file already generated
         elif (os.path.exists(os.path.join(self.build_path,"configure"))):
-            return self.build_autoconf(False)
+            if self.build_autoconf(False):
+                return True
             # Now check if it is an autoconf/automake without the 'configure' file generated
         elif (os.path.exists(os.path.join(self.build_path,"autogen.sh"))):
-            return self.build_autoconf(True)
+            if self.build_autoconf(True):
+                return True
             # Check if it is a CMake project
         elif (os.path.exists(os.path.join(self.build_path,"CMakeLists.txt"))):
-            return self.build_cmake()
+            if self.build_cmake():
+                return True
             # Finally, try with a classic Makefile
         elif (os.path.exists(os.path.join(self.build_path,"Makefile"))):
-            return self.build_makefile()
+            if self.build_makefile():
+                return True
+        else:
+            print (_("Unknown build system"))
+            return True
 
-        print (_("Unknown build system"))
-        return True
+        self.copy_perms(self.working_path,install_path)
+        return False
 
 
     def build_multipackager(self,filename):
@@ -305,3 +315,20 @@ class package_base(object):
 
         if (os.path.exists(filename)):
             os.chmod(filename, 0o755)
+
+
+    def copy_perms(self,template,final_folder):
+
+        files = os.listdir(final_folder)
+        for file in files:
+            template_file = os.path.join(template,file)
+            if not os.path.exists(template_file):
+                continue
+            if not os.path.isdir(template_file):
+                continue
+            final_file = os.path.join(final_folder,file)
+            statinfo = os.stat(template_file,follow_symlinks=False)
+            os.chmod(final_file, statinfo.st_mode)
+            os.chown(final_file, statinfo.st_uid, statinfo.st_gid, follow_symlinks=False)
+            if os.path.isdir(final_file):
+                self.copy_perms(template_file, final_file)

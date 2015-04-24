@@ -31,6 +31,7 @@ class configuration:
         self.working_path = "/root/multipackager"
         self.shell = "/bin/bash"
         self.config_file = "/etc/multipackager/config.cfg"
+        self.clean = True
 
 
     def set_project_path(self,project_path):
@@ -123,5 +124,9 @@ class configuration:
                 return None
             self.config_file = args[1]
             return args[2:]
+
+#         if args[0] == "--noclean":
+#             self.clean = False
+#             return args[1:]
 
         return None
