@@ -18,8 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
-import os
-
 class configuration:
 
     def __init__(self):
@@ -140,8 +138,8 @@ class configuration:
                 return None
             return args[2:]
 
-#         if args[0] == "--noclean":
-#             self.clean = False
-#             return args[1:]
+        if args[0] == "--noclean":
+            self.clean = False
+            return args[1:]
 
         return None

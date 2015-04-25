@@ -47,8 +47,8 @@ def print_usage(doexit = True):
     print ("Multipackager")
     print ("Version {:s}".format(version))
     print ("Usage:")
-    print ("multipackager.py [--config config_file] [-r|--revision revision_number] project_folder")
-    print ("multipackager.py [--config config_file] [-r|--revision revision_number] project_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] [-r|--revision revision_number] [--noclean] project_folder")
+    print ("multipackager.py [--config config_file] [-r|--revision revision_number] [--noclean] project_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] shell vm_folder {i386|amd64}")
     print ("multipackager.py [--config config_file] shell vm_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] update")
@@ -130,7 +130,8 @@ def build_project(config,project_path):
                 if package_name != None:
                     built.append(package_name)
         # remove temporary data
-        distro.cleanup()
+        if config.clean:
+            distro.cleanup()
 
     if len(built) > 0:
         print(_("Built packages:"))
