@@ -1,3 +1,5 @@
+0.12 (2015/04/26)
+ * Fixed a bug when launching a shell without specifying a linux distribution type and name 
 0.11 (2015/04/25)
  * Now keeps two caches, one with all the packages already installed in previous builds, and another (with a bare minimum system) for test shells, so the package creation process is much faster
  * Allows to specify the package revision in the command line

@@ -167,8 +167,6 @@ def launch_shell(argv,config):
         dtype = ""
         name = ""
         distro = multipackager_module.package_base.package_base(config,dtype,name,arch)
-        if distro.check_environment():
-            sys.exit(-1)
         distro.working_path = env_path
     else:
         dtype = argv[3]
