@@ -24,12 +24,12 @@ import multipackager_module.package_base
 
 class fedora (multipackager_module.package_base.package_base):
 
-    def __init__(self, configuration, distro_type, distro_name, architecture):
+    def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
         if architecture == "amd64":
             architecture = "x86_64"
 
-        multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture)
+        multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture,cache_name)
 
 
     def check_path_in_builds(self,project_path):
@@ -54,11 +54,11 @@ class fedora (multipackager_module.package_base.package_base):
             return "{:s}.{:s}{:s}-{:s}-{:s}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release,self.architecture)
 
 
-    def generate(self):
+    def generate(self,path):
         """ Ensures that the base system, to create a CHROOT environment, exists """
 
         # Create all, first, in a temporal folder
-        tmp_path = self.base_path+".tmp"
+        tmp_path = path+".tmp"
 
         shutil.rmtree(tmp_path, ignore_errors=True)
 
@@ -114,23 +114,22 @@ class fedora (multipackager_module.package_base.package_base):
             return True # error!!!
 
         os.sync()
-        os.rename(tmp_path,self.base_path) # rename the folder to the definitive name
+        os.rename(tmp_path,path) # rename the folder to the definitive name
         os.sync()
 
         shutil.rmtree(tmp_path, ignore_errors=True)
 
-        self.read_specs_data(self.build_path)
-
         return False # no error
 
 
-    def update(self):
+    @multipackager_module.package_base.call_with_cache
+    def update(self,path):
 
         """ Ensures that the chroot environment is updated with the lastest packages """
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
         command = 'yum update'
-        if (0 != self.run_chroot(self.base_path,command)):
+        if (0 != self.run_chroot(path,command)):
             return True # error!!!
 
         return False
@@ -215,16 +214,24 @@ class fedora (multipackager_module.package_base.package_base):
                     continue
 
 
-    def install_build_deps(self):
+    @multipackager_module.package_base.call_with_cache
+    def install_dependencies_full(self,path):
+
+        command = "yum -y install"
+        for dep in self.dependencies:
+            command += " "+dep
+        return self.run_chroot(path, command)
+
+
+    def install_dependencies(self,project_path):
 
         """ Install the dependencies needed for building this package """
 
+        if self.read_specs_data(project_path):
+            return True
+
         if (len(self.dependencies) != 0):
-            command = "yum -y install"
-            for dep in self.dependencies:
-                command += " "+dep
-            if (self.run_chroot(self.working_path, command)):
-                return True
+            return self.install_dependencies_full(self.base_path)
         return False
 
 
@@ -276,7 +283,7 @@ class fedora (multipackager_module.package_base.package_base):
         return True
 
 
-    def build_package(self):
+    def build_package(self,project_path):
         """ Takes the binaries located at /install_root and build a package """
 
         setup_python = os.path.join(self.build_path,"setup.py")
