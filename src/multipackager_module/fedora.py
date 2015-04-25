@@ -49,9 +49,9 @@ class fedora (multipackager_module.package_base.package_base):
         self.read_specs_data(project_path)
 
         if os.path.exists(os.path.join(project_path,"setup.py")):
-            return "{:s}.{:s}{:s}-{:s}-{:s}.noarch.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release)
+            return "{:s}.{:s}{:s}-{:s}-{:d}.noarch.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.configuration.revision)
         else:
-            return "{:s}.{:s}{:s}-{:s}-{:s}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.project_release,self.architecture)
+            return "{:s}.{:s}{:s}-{:s}-{:d}.{:s}.rpm".format(self.project_name,self.distro_type,self.distro_name,self.project_version,self.configuration.revision,self.architecture)
 
 
     def generate(self,path):
@@ -172,7 +172,6 @@ class fedora (multipackager_module.package_base.package_base):
                     self.project_version = line[8:].strip()
                     continue
                 if line[:8] == "release:":
-                    self.project_release = line[8:].strip()
                     continue
             self.read_python_setup(working_path)
         else:
@@ -210,7 +209,6 @@ class fedora (multipackager_module.package_base.package_base):
                     self.project_version = line[8:].strip()
                     continue
                 if line[:8] == "Release:":
-                    self.project_release = line[8:].strip()
                     continue
 
 
@@ -326,6 +324,10 @@ class fedora (multipackager_module.package_base.package_base):
                 continue
 
             if do_copy == False:
+                continue
+
+            if line[:8] == "Release:":
+                spec_o.write("Release: {:d}\n".format(self.configuration.revision))
                 continue
 
             if line[0] != '%':

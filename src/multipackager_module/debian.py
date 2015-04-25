@@ -44,12 +44,20 @@ class debian (multipackager_module.package_base.package_base):
         return None
 
 
+    def set_project_version(self,text):
+
+        pos = text.rfind("-")
+        if (pos != -1):
+            text = text[:pos]
+        self.project_version = text
+
+
     def get_package_name(self,project_path):
         """ Returns the final package name for the project specified, or None if can't be determined yet """
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
             self.read_python_setup(project_path)
-            package_name = "{:s}-{:s}.{:s}_{:s}~{:s}0_all.deb".format("python2" if self.python2 else "python3",self.project_name,self.distro_name,self.project_version,self.distro_type)
+            package_name = "{:s}-{:s}-{:s}_{:s}-{:s}{:d}_all.deb".format("python2" if self.python2 else "python3",self.project_name,self.distro_name,self.project_version,self.distro_type,self.configuration.revision)
         else:
             debian_path = self.check_path_in_builds(project_path)
             if (debian_path == None):
@@ -68,10 +76,10 @@ class debian (multipackager_module.package_base.package_base):
                     self.project_name = line[8:].strip()
                     continue
                 if line[:8] == "Version:":
-                    self.project_version = line[8:].strip()
+                    self.set_project_version(line[8:].strip())
                     continue
             f.close()
-            package_name = "{:s}.{:s}_{:s}~{:s}0_{:s}.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type,self.architecture)
+            package_name = "{:s}-{:s}_{:s}-{:s}{:d}_{:s}.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type,self.configuration.revision,self.architecture)
         return package_name
 
 
@@ -204,7 +212,7 @@ class debian (multipackager_module.package_base.package_base):
                 self.project_name = line[8:].strip()
                 continue
             if line[:8] == "Version:":
-                self.project_version = line[8:].strip()
+                self.set_project_version(line[8:].strip())
                 continue
         f.close()
 
@@ -278,6 +286,8 @@ class debian (multipackager_module.package_base.package_base):
                 continue
             elif (line[:14] == "Build-Depends:"):
                 continue
+            elif (line[:8] == "Version:"):
+                line = "Version: {:s}".format(self.project_version)
             f2.write(line+"\n")
         f1.close()
         f2.close()

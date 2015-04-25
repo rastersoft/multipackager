@@ -7,8 +7,8 @@ Multipackager is a program that aims to simplify the creation of packages for li
 
 ## USAGE ## 
 
-**multipackager.py** *[--config config_file]* project_folder  
-**multipackager.py** *[--config config_file]* project_folder {debian|ubuntu|fedora} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* project_folder  
+**multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* project_folder {debian|ubuntu|fedora} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* shell vm_folder {i386|amd64}  
 **multipackager.py** *[--config config_file]* shell vm_folder {debian|ubuntu|fedora} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* update  
@@ -118,10 +118,10 @@ In order to build the project itself and do the final installation, multipackage
 
 There are several options:
 
-**multipackager.py** *[--config config_file]* project_folder  
-**multipackager.py** *[--config config_file]* project_folder {debian|ubuntu} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* project_folder  
+**multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* project_folder {debian|ubuntu} version_name {i386|amd64}  
 
-These two commands specifies to build packages for a project. The first one will build packages for the project stored at **project_folder**, and for all the OS triplets specified in the default config file (unless another **config_file** is specified; in that case the triplets will be searched inside it). This way, an user can define all the common triplets he/she uses commonly, and build the packages in a single command.
+These two commands specifies to build packages for a project. The first one will build packages for the project stored at **project_folder**, and for all the OS triplets specified in the default config file (unless another **config_file** is specified; in that case the triplets will be searched inside it). This way, an user can define all the common triplets he/she uses commonly, and build the packages in a single command. The revision number is the value used for the package's revision number. By default (if no number is specified) number 1 will be used.
 
 The second command allows to build a package for a project for an specific OS triplet.
 

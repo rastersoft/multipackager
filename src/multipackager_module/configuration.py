@@ -32,6 +32,7 @@ class configuration:
         self.shell = "/bin/bash"
         self.config_file = "/etc/multipackager/config.cfg"
         self.clean = True
+        self.revision = 1
 
 
     def set_project_path(self,project_path):
@@ -119,10 +120,24 @@ class configuration:
                 return [args[0]] + retval
 
         if args[0] == "--config":
-            if args_size < 1:
+            if args_size < 2:
                 print (_("--config parameter must be followed by a path"))
                 return None
             self.config_file = args[1]
+            return args[2:]
+
+        if (args[0] == "--revision") or (args[0] == "-r"):
+            syntax_error = False
+            if args_size < 2:
+                syntax_error = True
+            else:
+                try:
+                    self.revision = int(args[1])
+                except:
+                    syntax_error = True
+            if syntax_error:
+                print (_("--revision parameter must be followed by a number"))
+                return None
             return args[2:]
 
 #         if args[0] == "--noclean":
