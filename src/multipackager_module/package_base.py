@@ -160,13 +160,13 @@ class package_base(object):
         return False
 
 
-    @call_with_cache
-    def update_environment(self,path):
+    def update_environment(self):
 
         """ Ensures that the environment is updated with the last packages """
 
         print(_("Updating {:s}").format(self.base_chroot_name))
-        return self.update(path)
+        self.update(self.base_cache_path)
+        return self.update(self.base_path)
 
 
     def clear_cache(self):

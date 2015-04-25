@@ -232,7 +232,7 @@ def update_envs(argv,config):
         if distro.check_environment():
             continue
         # update the packages in the cached environment
-        distro.update_environment(distro.base_path)
+        distro.update_environment()
 
 
 def clearcache(argv,config):

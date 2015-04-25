@@ -1,6 +1,7 @@
 0.11 (2015/04/25)
  * Now keeps two caches, one with all the packages already installed in previous builds, and another (with a bare minimum system) for test shells, so the package creation process is much faster
  * Allows to specify the package revision in the command line
+ * Allows to keep the temporary virtual machines used to build the packages
 0.10 (2015/04/24)
  * Now ensures that the permissions and uid and gid in a package are the same than in the file system, to avoid conflicts in binary RPM packages
 0.9 (2015/04/23)
