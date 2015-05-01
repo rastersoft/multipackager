@@ -29,21 +29,6 @@ class arch (multipackager_module.package_base.package_base):
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture, cache_name)
 
 
-    def check_path_in_builds(self,project_path):
-
-        if self.distro_type == "ubuntu":
-            # Try the "ubuntu" folder, and if it doesn't exists, try with "debian" one
-            path_list = ["ubuntu","UBUNTU","Ubuntu","debian","DEBIAN","Debian"]
-        else:
-            path_list = ["debian","DEBIAN","Debian"]
-
-        for element in path_list:
-            path = os.path.join(project_path,element)
-            if os.path.exists(path):
-                return path
-        return None
-
-
     def set_project_version(self,text):
 
         pos = text.rfind("-")
@@ -57,29 +42,22 @@ class arch (multipackager_module.package_base.package_base):
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))):
             self.read_python_setup(project_path)
-            package_name = "{:s}-{:s}-{:s}_{:s}-{:s}{:d}_all.deb".format("python2" if self.python2 else "python3",self.project_name,self.distro_name,self.project_version,self.distro_type,self.configuration.revision)
+            package_name = "{:s}-{:s}-{:s}-{:d}-any.pkg.tar.xz".format("python2" if self.python2 else "python",self.project_name,self.project_version,self.configuration.revision)
         else:
-            debian_path = self.check_path_in_builds(project_path)
-            if (debian_path == None):
+            pacman_path = os.path.join(project_path,"PKGBUILD")
+            if (not os.path.exists(pacman_path)):
                 return True
 
-            control_path = os.path.join(debian_path,"control")
-            if (not os.path.exists(control_path)):
-                return True
-
-            f = open (control_path,"r")
+            f = open (pacman_path,"r")
             for line in f:
-                if line[:7] == "Source:":
-                    self.project_name = line[7:].strip()
-                    continue
-                if line[:8] == "Package:":
+                if line[:8] == "pkgname=":
                     self.project_name = line[8:].strip()
                     continue
-                if line[:8] == "Version:":
-                    self.set_project_version(line[8:].strip())
+                if line[:7] == "pkgver=":
+                    self.set_project_version(line[7:].strip())
                     continue
             f.close()
-            package_name = "{:s}-{:s}_{:s}-{:s}{:d}_{:s}.deb".format(self.project_name,self.distro_name,self.project_version,self.distro_type,self.configuration.revision,self.architecture)
+            package_name = "{:s}-{:s}-{:d}-{:s}.pkg.tar.xz".format(self.project_name,self.project_version,self.configuration.revision,"i686" if self.architecture=="i386" else "x86_64")
         return package_name
 
 
@@ -136,7 +114,11 @@ class arch (multipackager_module.package_base.package_base):
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
-        command = "pacman -r / -Sy --noconfirm base"
+        command = "pacman -r / -Syu --noconfirm base"
+        if (0 != self.run_chroot(tmp_path,command)):
+            return True # error!!!
+
+        command = "useradd multipackager -m -b /"
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
@@ -166,10 +148,155 @@ class arch (multipackager_module.package_base.package_base):
     @multipackager_module.package_base.call_with_cache
     def install_dependencies_full(self,path,dependencies):
 
-        command = "apt-get install -y"
+        command = "pacman --noconfirm -S"
         for dep in dependencies:
             command += " "+dep
         return self.run_chroot(path, command)
+
+
+    def read_deps(self,pacman_path,read_extra_data):
+
+        dependencies = []
+
+        f = open (pacman_path,"r")
+        multiline = False
+        full_line = ""
+        for line in f:
+            if multiline:
+                full_line += line
+                if (full_line.find(")") != -1):
+                    multiline = False
+                else:
+                    continue
+            else:
+                full_line = line
+
+            tmp = None
+
+            if full_line[:12] == "makedepends=":
+                if (full_line.find(")") == -1) and (full_line.find("(") != -1):
+                    multiline = True
+                    continue
+                tmp = full_line[12:].replace("(","").replace(")","").replace("'","").replace('"',"").strip().split(" ")
+            elif line[:8] == "depends=":
+                if (full_line.find(")") == -1) and (full_line.find("(") != -1):
+                    multiline = True
+                    continue
+                tmp = full_line[8:].replace("(","").replace(")","").replace("'","").replace('"',"").strip().split(" ")
+            elif read_extra_data:
+                if full_line[:8] == "pkgname=":
+                    self.project_name = line[8:].strip()
+                elif full_line[:7] == "pkgver=":
+                    self.set_project_version(line[7:].strip())
+                continue
+
+            if tmp == None:
+                continue
+            for element in tmp:
+                pos = element.find(">")
+                if pos != -1:
+                    element = element[:pos]
+                pos = element.find("<")
+                if pos != -1:
+                    element = element[:pos]
+                pos = element.find("=")
+                if pos != -1:
+                    element = element[:pos]
+                if (element != "") and (dependencies.count(element) == 0):
+                    dependencies.append(element)
+        f.close()
+        return dependencies
+
+
+    def check_dependencies(self,tmp_path,dependencies,main_dependencies,aur_dependencies):
+
+        new_dependencies = []
+
+        for dep in dependencies:
+            if (dep == "sh"):
+                dep = "bash"
+            command = "pacman -Q {:s}".format(dep)
+            if not self.run_chroot(self.base_path, command):
+                continue # this package is already installed
+            command = "pacman -Si {:s}".format(dep)
+            if not self.run_chroot(self.base_path, command):
+                if main_dependencies.count(dep) == 0:
+                    main_dependencies.append(dep) # the package is available in the oficial repository
+            else:
+                package_dir = os.path.join(tmp_path,dep)
+                pkgbuild_path = os.path.join(package_dir,"PKGBUILD")
+                os.makedirs(package_dir)
+                command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/PKGBUILD -O {:s}".format(dep[:2],dep,pkgbuild_path)
+                if self.run_external_program(command):
+                    print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
+                    return None
+                aur_dependencies.insert(0,dep) # the package is available in the AUR repository
+                tmpdeps = self.read_deps(pkgbuild_path, False)
+                for dep2 in tmpdeps:
+                    if (0 != aur_dependencies.count(dep2)):
+                        aur_dependencies.remove(dep2)
+                        aur_dependencies.insert(0,dep2) # move it to the start
+                    elif (0 != dependencies.count(dep2)):
+                        continue # will be checked in this loop, so there is no need of pass it again to the next loop
+                    elif (0 == main_dependencies.count(dep2)) and (0 == new_dependencies.count(dep2)):
+                        new_dependencies.append(dep2)
+
+        return new_dependencies
+
+
+    def install_packages(self,package_list):
+
+        main_dependencies = []
+        self.aur_dependencies = []
+
+        tmp_path = os.path.join(self.base_path,"built_tmp_packages")
+        shutil.rmtree(tmp_path, ignore_errors=True)
+        os.makedirs(tmp_path)
+
+        while (len(package_list) != 0):
+            package_list = self.check_dependencies(tmp_path, package_list, main_dependencies, self.aur_dependencies)
+            if package_list == None:
+                return True
+
+        # Install first the dependencies from the main repository
+        if (len(main_dependencies) != 0):
+            if self.install_dependencies_full(self.base_path,main_dependencies):
+                return True
+
+        return False
+
+
+    def build_AUR_package(self,path):
+
+        fullpath = os.path.join(self.working_path,path)
+        pkgfullpath = os.path.join(fullpath,"PKGBUILD")
+
+        if not os.path.exists(pkgfullpath):
+            return False
+
+        os.chmod(fullpath, 511) # 777 permissions
+
+        command = 'bash -c "cd {:s} && makepkg"'.format(path)
+        if self.run_chroot(self.working_path, command, "multipackager"):
+            return True
+
+        for file in os.listdir(fullpath):
+            if (file[-11:]==".pkg.tar.xz"):
+                command = 'pacman --noconfirm -U {:s}'.format(os.path.join(path,file))
+                return self.run_chroot(self.working_path, command)
+        print(_("Unable to install the created package for {:s}").format(path))
+        return True
+
+
+    def install_postdependencies(self,project_path):
+
+        tmp_path = os.path.join(self.working_path,"built_tmp_packages")
+        for paths in os.listdir(tmp_path):
+            full_path = os.path.join("built_tmp_packages",paths)
+            if self.build_AUR_package(full_path):
+                print (_("Failed to build package {:s}. Aborting").format(paths))
+                return True
+        return False
 
 
     def install_dependencies(self,project_path):
@@ -179,67 +306,21 @@ class arch (multipackager_module.package_base.package_base):
         dependencies = []
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))): # it is a python package
-            control_path = os.path.join(project_path,"stdeb.cfg")
-            dependencies.append("python3")
-            dependencies.append("python3-stdeb")
-            dependencies.append("python3-all")
-            dependencies.append("python-all")
+            pacman_path = os.path.join(project_path,"stpacman.cfg")
+            dependencies = self.read_deps(pacman_path,True)
+            dependencies.append("python")
+            dependencies.append("python-stdeb")
+            dependencies.append("python2")
             dependencies.append("fakeroot")
         else:
-            debian_path = self.check_path_in_builds(project_path)
-            if debian_path == None:
-                print (_("There is no DEBIAN/UBUNTU folder with the package specific data"))
+            pacman_path = os.path.join(project_path,"PKGBUILD")
+            if (not os.path.exists(pacman_path)):
+                print (_("There is no PKGBUILD file with the package specific data"))
                 return True
+            dependencies = self.read_deps(pacman_path,True)
+            dependencies.append("fakeroot")
 
-            control_path = os.path.join(debian_path,"control")
-            if (not os.path.exists(control_path)):
-                print (_("There is no CONTROL file with the package specific data"))
-                return True
-
-        f = open (control_path,"r")
-        for line in f:
-            if (line[:13] == "Build-Depends"):
-                tmp = line[13:].strip()
-                if (tmp[0] == ':') or (tmp[0] == '='):
-                    tmp = tmp[1:].strip()
-                tmp = tmp.split(",")
-                for element2 in tmp:
-                    tmp2 = element2.split("|")
-                    # if it is a single package, just add it as-is
-                    if (len(tmp2) == 1):
-                        dependencies.append(element2.strip())
-                        continue
-                    # but if there are several optional packages, check each one and install the first found
-                    list_p = ""
-                    found = False
-                    for element in tmp2:
-                        pos = element.find("(") # remove version info
-                        if (pos != -1):
-                            element = element[:pos]
-                        list_p += " "+element
-                        command = "apt-cache show {:s}".format(element)
-                        if (0 == self.run_chroot(self.base_path, command)):
-                            dependencies.append(element.strip())
-                            found = True
-                            break
-                    if not found:
-                        print (_("Cant find any of these packages in the guest system:{:s}").format(list_p))
-                        return True
-                continue
-            if line[:7] == "Source:":
-                self.project_name = line[7:].strip()
-                continue
-            if line[:8] == "Package:":
-                self.project_name = line[8:].strip()
-                continue
-            if line[:8] == "Version:":
-                self.set_project_version(line[8:].strip())
-                continue
-        f.close()
-
-        if (len(dependencies) != 0):
-            return self.install_dependencies_full(self.base_path,dependencies)
-        return False
+        return self.install_packages(dependencies)
 
 
     def build_python(self):
@@ -279,45 +360,31 @@ class arch (multipackager_module.package_base.package_base):
             package_name = self.get_package_name(self.build_path)
             return self.copy_debs(destination_dir,package_name)
 
-        debian_path = self.check_path_in_builds(project_path)
+        pkgbuild = os.path.join(self.build_path,"PKGBUILD")
+        pkg_copy = os.path.join(self.build_path,"PKGBUILD_copy")
+        os.rename(pkgbuild,pkg_copy)
 
-        package_path = os.path.join(self.working_path,"install_root","DEBIAN")
-        os.makedirs(package_path)
-        command = "cp -a {:s} {:s}".format(os.path.join(debian_path,"*"),package_path)
-        if self.run_external_program(command):
-            return True
+        f1 = open(pkg_copy,"r")
+        f2 = open(pkgbuild,"w")
 
-        self.set_perms(os.path.join(package_path,"preinst"))
-        self.set_perms(os.path.join(package_path,"postinst"))
-        self.set_perms(os.path.join(package_path,"prerm"))
-        self.set_perms(os.path.join(package_path,"postrm"))
-
-        control_path = os.path.join(package_path,"control")
-        f1 = open (control_path,"r")
-        f2 = open (control_path+".tmp","w")
         for line in f1:
-            line = line.replace("\n","").replace("\r","")
-            if (line == ""): # remove blank lines, just in case
-                continue
-            elif (line[:13] == "Architecture:"):
-                arch = line[13:].strip()
-                if (arch == "any"):
-                    line = "Architecture: {:s}".format(self.architecture)
-            elif (line[:7] == "Source:"):
-                continue
-            elif (line[:14] == "Build-Depends:"):
-                continue
-            elif (line[:8] == "Version:"):
-                line = "Version: {:s}".format(self.project_version)
-            f2.write(line+"\n")
+            if (line[:8]=="pkgver()") or (line[:9]=="prepare()") or (line[:7]=="build()") or (line[:7]=="check()") or (line[:9]=="package()"):
+                break
+            f2.write(line)
+
+        f2.write("\nbuild() {\n\techo Fake build\n}\n\npackage() {\n\trm -rf ${pkgdir}\n\tmkdir -p ${pkgdir}\n\tcp -a /install_root/* ${pkgdir}\n}\n")
         f1.close()
         f2.close()
-        os.remove(control_path)
-        os.rename(control_path+".tmp",control_path)
-        package_name = self.get_package_name(self.build_path)
-        command = 'bash -c "cd / && dpkg -b /install_root {:s}"'.format(package_name)
-        if (self.run_chroot(self.working_path, command)):
-            return True
-        shutil.move(os.path.join(self.working_path,package_name), os.getcwd())
-        return False
 
+        os.chmod(self.build_path, 511) # 777 permissions
+
+        command = 'bash -c "cd /project && makepkg"'
+        if self.run_chroot(self.working_path, command, "multipackager"):
+            return True
+
+        for file in os.listdir(self.build_path):
+            if (file[-11:]==".pkg.tar.xz"):
+                shutil.move(os.path.join(self.build_path,file), os.getcwd())
+                return False
+        print(_("Unable to move the created package"))
+        return True

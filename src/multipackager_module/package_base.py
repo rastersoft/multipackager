@@ -138,6 +138,10 @@ class package_base(object):
         return False
 
 
+    def install_postdependencies(self,project_path):
+        return False
+
+
     def prepare_working_path(self,final_path = None):
 
         """ Creates a working copy of the chroot environment to keep the original untouched.
@@ -327,17 +331,22 @@ class package_base(object):
 
         print(_("Launching {:s}").format(str(command)))
         proc = subprocess.Popen(command, shell=True)
-        return proc.wait()
+        return (proc.wait() != 0)
 
 
-    def run_chroot(self,base_path,command):
+    def run_chroot(self,base_path,command,username = None):
 
         if self.architecture == "i386":
             personality = "x86"
         else:
             personality = "x86-64"
 
-        command = "systemd-nspawn -D {:s} --personality {:s} {:s}".format(base_path,personality,command)
+        if username != None:
+            userparam = "--user={:s}".format(username)
+        else:
+            userparam = ""
+
+        command = "systemd-nspawn {:s} -D {:s} --personality {:s} {:s}".format(userparam,base_path,personality,command)
         return self.run_external_program(command)
 
 

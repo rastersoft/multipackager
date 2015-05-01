@@ -125,14 +125,16 @@ def build_project(config,project_path):
             if distro.prepare_working_path():
                 sys.exit(-1)
 
-            # build the project itself
-            if not distro.build_project(project_path):
-                # if there are no errors, create the package and copy it to the current directory
-                if distro.build_package(project_path):
-                    print (_("Failed to build the packages"))
-                    sys.exit(-1)
-                if package_name != None:
-                    built.append(package_name)
+            if not distro.install_postdependencies(project_path):
+
+                # build the project itself
+                if not distro.build_project(project_path):
+                    # if there are no errors, create the package and copy it to the current directory
+                    if distro.build_package(project_path):
+                        print (_("Failed to build the packages"))
+                        sys.exit(-1)
+                    if package_name != None:
+                        built.append(package_name)
         # remove temporary data
         if config.clean:
             distro.cleanup()
