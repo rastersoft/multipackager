@@ -20,6 +20,7 @@
 
 import os
 import shutil
+import configparser
 import multipackager_module.package_base
 
 class arch (multipackager_module.package_base.package_base):
@@ -27,6 +28,7 @@ class arch (multipackager_module.package_base.package_base):
     def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture, cache_name)
+        self.install_at_lib = True
 
 
     def set_project_version(self,text):
@@ -299,6 +301,33 @@ class arch (multipackager_module.package_base.package_base):
         return False
 
 
+    def read_deps_python(self,path,sep = False):
+
+        if not os.path.exists(path):
+            return []
+        
+        dependencies = []
+        makedepends = []
+        pkg_data = configparser.ConfigParser()
+        pkg_data.read(path)
+        if 'depends' in pkg_data['DEFAULT']:
+            deps = pkg_data['DEFAULT']['depends'].split(',')
+            for dep in deps:
+                dependencies.append(dep.strip())
+        if 'makedepends' in pkg_data['DEFAULT']:
+            deps = pkg_data['DEFAULT']['makedepends'].split(',')
+            for dep in deps:
+                if sep:
+                    makedepends.append(dep.strip())
+                else:
+                    dependencies.append(dep.strip())
+
+        if sep:
+            return dependencies,makedepends
+        else:
+            return dependencies
+
+
     def install_dependencies(self,project_path):
 
         """ Install the dependencies needed for building this package """
@@ -307,18 +336,15 @@ class arch (multipackager_module.package_base.package_base):
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))): # it is a python package
             pacman_path = os.path.join(project_path,"stpacman.cfg")
-            dependencies = self.read_deps(pacman_path,True)
+            dependencies = self.read_deps_python(pacman_path)
             dependencies.append("python")
-            dependencies.append("python-stdeb")
             dependencies.append("python2")
-            dependencies.append("fakeroot")
         else:
             pacman_path = os.path.join(project_path,"PKGBUILD")
             if (not os.path.exists(pacman_path)):
                 print (_("There is no PKGBUILD file with the package specific data"))
                 return True
             dependencies = self.read_deps(pacman_path,True)
-            dependencies.append("fakeroot")
 
         return self.install_packages(dependencies)
 
@@ -326,25 +352,20 @@ class arch (multipackager_module.package_base.package_base):
     def build_python(self):
         """ Builds a package for a python project """
 
-        destination_dir = os.path.join(self.build_path,"deb_dist")
-        shutil.rmtree(destination_dir, ignore_errors = True)
-
-        if (self.run_chroot(self.working_path, 'bash -c "cd /project && python3 setup.py --command-packages=stdeb.command bdist_deb"')):
-            return True
         return False
 
 
-    def copy_debs(self,destination_dir,package_name):
+    def copy_pacs(self,destination_dir,package_name):
 
         files = os.listdir(destination_dir)
         for f in files:
-            if f[-4:] == ".deb":
+            if f[-7:] == ".tar.xz":
                 origin_name = os.path.join(destination_dir,f)
                 final_name = os.path.join(os.getcwd(),package_name)
                 if (os.path.exists(final_name)):
                     os.remove(final_name)
                 if os.path.isdir(origin_name):
-                    if not self.copy_debs(origin_name,package_name):
+                    if not self.copy_pacs(origin_name,package_name):
                         return False
                 shutil.move(origin_name, final_name)
                 return False
@@ -356,31 +377,87 @@ class arch (multipackager_module.package_base.package_base):
 
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
-            destination_dir = os.path.join(self.build_path,"deb_dist")
-            package_name = self.get_package_name(self.build_path)
-            return self.copy_debs(destination_dir,package_name)
+            is_python = True
+        else:
+            is_python = False
 
         pkgbuild = os.path.join(self.build_path,"PKGBUILD")
-        pkg_copy = os.path.join(self.build_path,"PKGBUILD_copy")
-        os.rename(pkgbuild,pkg_copy)
 
-        f1 = open(pkg_copy,"r")
-        f2 = open(pkgbuild,"w")
+        if os.path.exists(pkgbuild):
+            do_copy = True
+            pkg_copy = os.path.join(self.build_path,"PKGBUILD_copy")
+            os.rename(pkgbuild,pkg_copy)
 
-        for line in f1:
-            if (line[:8]=="pkgver()") or (line[:9]=="prepare()") or (line[:7]=="build()") or (line[:7]=="check()") or (line[:9]=="package()"):
-                break
-            f2.write(line)
+            f1 = open(pkg_copy,"r")
+            f2 = open(pkgbuild,"w")
 
-        f2.write("\nbuild() {\n\techo Fake build\n}\n\npackage() {\n\trm -rf ${pkgdir}\n\tmkdir -p ${pkgdir}\n\tcp -a /install_root/* ${pkgdir}\n}\n")
-        f1.close()
+            for line in f1:
+                if (line[:8]=="pkgver()") or (line[:9]=="prepare()") or (line[:7]=="build()") or (line[:7]=="check()") or (line[:9]=="package()"):
+                    break
+                f2.write(line)
+        else:
+            do_copy = False
+            f2 = open(pkgbuild,"w")
+            f2.write("pkgname={:s}\n".format(self.pysetup["name"]))
+            f2.write("pkgver={:s}\n".format(self.pysetup["version"]))
+            f2.write("pkgrel={:s}\n".format(self.project_release))
+            f2.write('pkgdesc="{:s}"\n'.format(self.pysetup["long-description"]))
+            if (self.pysetup["url"] != "UNKNOWN"):
+                f2.write('url={:s}\n'.format(self.pysetup["url"]))
+            if (self.pysetup["license"] != "UNKNOWN"):
+                f2.write('license={:s}\n'.format(self.pysetup["license"]))
+            f2.write("arch=( 'any' )\n")
+            pacman_path = os.path.join(project_path,"stpacman.cfg")
+            if os.path.exists(pacman_path):
+                deps, makedeps = self.read_deps_python(pacman_path, True)
+                f2.write("depends=( ")
+                py3 = False
+                for d in deps:
+                    f2.write("'{:s}' ".format(d))
+                    if d == "python":
+                        py3 = True
+                if not py3:
+                    f2.write("'python' ")
+                f2.write(")\nmakedepends=( ")
+                py3 = False
+                for d in makedeps:
+                    f2.write("'{:s}' ".format(d))
+                    if d == "python":
+                        py3 = True
+                if not py3:
+                    f2.write("'python' ")
+                f2.write(")\n")
+            else:
+                f2.write("depends=( )\nmakedepends=( )\n")
+
+        f2.write("\nbuild() {\n")
+        f2.write("\techo Fake build\n")
+        f2.write("}\n\n")
+        f2.write("package() {\n")
+        f2.write("\trm -rf ${pkgdir}\n")
+        f2.write("\tmkdir -p ${pkgdir}\n")
+        if is_python:
+            f2.write("\tcd /project\n")
+            f2.write("\tpython3 setup.py install --prefix /usr --root ${pkgdir}\n")
+        else:
+            f2.write("\tcp -a /install_root/* ${pkgdir}\n")
+        f2.write("}\n")
+        
+        if do_copy:
+            f1.close()
         f2.close()
+
 
         os.chmod(self.build_path, 511) # 777 permissions
 
         command = 'bash -c "cd /project && makepkg"'
         if self.run_chroot(self.working_path, command, "multipackager"):
             return True
+
+#         if is_python:
+#             destination_dir = os.path.join(self.working_path,"arch_dist")
+#             package_name = self.get_package_name(self.build_path)
+#             return self.copy_pacs(destination_dir,package_name)
 
         for file in os.listdir(self.build_path):
             if (file[-11:]==".pkg.tar.xz"):

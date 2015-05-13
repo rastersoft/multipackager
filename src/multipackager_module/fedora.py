@@ -20,6 +20,7 @@
 
 import os
 import shutil
+import configparser
 import multipackager_module.package_base
 
 class fedora (multipackager_module.package_base.package_base):
@@ -144,36 +145,24 @@ class fedora (multipackager_module.package_base.package_base):
         self.dependencies.append("rpm-build")
 
         if (os.path.exists(os.path.join(working_path,"setup.py"))): # it is a python package
-            self.dependencies.append("python3")
-            extra = open(os.path.join(working_path,"setup.cfg"))
-            rpm_block = False
-            for line in extra:
-                line = line.strip()
-                if line[0] == '[':
-                    if line == "[bdist_rpm]":
-                        rpm_block = True
-                    else:
-                        rpm_block = False
-
-                if not rpm_block:
-                    continue
-
-                if line[:15] == "build_requires:":
-                    deps = line[15:].split(" ")
-                    for l in deps:
-                        if l == "":
-                            continue
-                        self.dependencies.append(l)
-                    continue
-                if line[:5] == "name:":
-                    self.project_name = line[5:].strip()
-                    continue
-                if line[:8] == "version:":
-                    self.project_version = line[8:].strip()
-                    continue
-                if line[:8] == "release:":
-                    continue
             self.read_python_setup(working_path)
+            self.dependencies.append("python3")
+            setup_cfg = os.path.join(working_path,"setup.cfg")
+            if os.path.exists(setup_cfg):
+                pkg_data = configparser.ConfigParser()
+                pkg_data.read(setup_cfg)
+                if 'bdist_rpm' in pkg_data:
+                    if 'build_requires' in pkg_data['bdist_rpm']:
+                        deps = pkg_data['bdist_rpm']['build_requires'].split(' ')
+                        for dep in deps:
+                            dep = dep.strip()
+                            if dep == '':
+                                continue
+                            self.dependencies.append(dep)
+                    if 'name' in pkg_data['bdist_rpm']:
+                        self.project_name = pkg_data['bdist_rpm']['name']
+                    if 'version' in pkg_data['bdist_rpm']:
+                        self.project_version = pkg_data['bdist_rpm']['version']
         else:
             specs_path = self.check_path_in_builds(working_path)
             if (specs_path == None):

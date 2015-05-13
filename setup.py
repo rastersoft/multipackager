@@ -3,7 +3,6 @@
 import os
 from glob import glob
 from distutils.core import setup
-
 try:
     from distutils import dep_util
 except:
@@ -39,11 +38,8 @@ def compile_translations():
                 os.makedirs(modir)
 
             if not os.path.isfile(mofile) or dep_util.newer(pofile, mofile):
-                print('compiling %s' % mofile)
                 # msgfmt.make(pofile, mofile)
                 os.system("msgfmt \"" + pofile + "\" -o \"" + mofile + "\"")
-            else:
-                print('skipping %s - up to date' % mofile)
     except:
         pass
 
