@@ -232,7 +232,7 @@ class debian (multipackager_module.package_base.package_base):
         return False
 
 
-    def copy_debs(self,destination_dir,package_name):
+    def copy_pacs(self,destination_dir,package_name):
 
         files = os.listdir(destination_dir)
         for f in files:
@@ -242,7 +242,7 @@ class debian (multipackager_module.package_base.package_base):
                 if (os.path.exists(final_name)):
                     os.remove(final_name)
                 if os.path.isdir(origin_name):
-                    if not self.copy_debs(origin_name,package_name):
+                    if not self.copy_pacs(origin_name,package_name):
                         return False
                 shutil.move(origin_name, final_name)
                 return False
@@ -256,7 +256,7 @@ class debian (multipackager_module.package_base.package_base):
         if (os.path.exists(setup_python)):
             destination_dir = os.path.join(self.build_path,"deb_dist")
             package_name = self.get_package_name(self.build_path)
-            return self.copy_debs(destination_dir,package_name)
+            return self.copy_pacs(destination_dir,package_name)
 
         debian_path = self.check_path_in_builds(project_path)
 

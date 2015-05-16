@@ -3,7 +3,6 @@
 import os
 from glob import glob
 from distutils.core import setup
-
 try:
     from distutils import dep_util
 except:
@@ -39,11 +38,8 @@ def compile_translations():
                 os.makedirs(modir)
 
             if not os.path.isfile(mofile) or dep_util.newer(pofile, mofile):
-                print('compiling %s' % mofile)
                 # msgfmt.make(pofile, mofile)
                 os.system("msgfmt \"" + pofile + "\" -o \"" + mofile + "\"")
-            else:
-                print('skipping %s - up to date' % mofile)
     except:
         pass
 
@@ -54,7 +50,7 @@ os.system("pandoc -s -f markdown_github -t man -o multipackager.1.gz README.md")
 setup(
     name='multipackager',
 
-    version='0.13',
+    version='0.14',
 
     description='Simplifies the creation of Linux packages for multiple architectures and distributions.',
     long_description = "A tool to create packages for mutiple architectures and linux OS",
@@ -74,7 +70,7 @@ setup(
         # 3 - Alpha
         # 4 - Beta
         # 5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
@@ -83,7 +79,7 @@ setup(
         'Programming Language :: Python :: 3'
     ],
 
-    keywords='package deb',
+    keywords='package deb rpm pacman',
 
     packages=['multipackager_module'],
 

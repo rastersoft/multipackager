@@ -23,6 +23,7 @@ import gettext
 import locale
 import multipackager_module.debian
 import multipackager_module.fedora
+import multipackager_module.arch
 import multipackager_module.configuration
 import multipackager_module.package_base
 
@@ -48,13 +49,13 @@ def print_usage(doexit = True):
     print ("Version {:s}".format(version))
     print ("Usage:")
     print ("multipackager.py [--config config_file] [-r|--revision revision_number] [--noclean] project_folder")
-    print ("multipackager.py [--config config_file] [-r|--revision revision_number] [--noclean] project_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] [-r|--revision revision_number] [--noclean] project_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] shell vm_folder {i386|amd64}")
-    print ("multipackager.py [--config config_file] shell vm_folder {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] shell vm_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] update")
-    print ("multipackager.py [--config config_file] update {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] update {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] clearcache")
-    print ("multipackager.py [--config config_file] clearcache {debian|ubuntu|fedora} version_name {i386|amd64}")
+    print ("multipackager.py [--config config_file] clearcache {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
 
     if (doexit):
         sys.exit(-1)
@@ -73,6 +74,9 @@ def get_distro_object(distro_name):
 
     if (distro_name == "fedora"):
         return multipackager_module.fedora.fedora
+
+    if (distro_name == "arch"):
+        return multipackager_module.arch.arch
 
     print(_("Distro name {:s} unknown. Aborting.").format(distro_name))
     sys.exit(-1)
@@ -121,14 +125,16 @@ def build_project(config,project_path):
             if distro.prepare_working_path():
                 sys.exit(-1)
 
-            # build the project itself
-            if not distro.build_project(project_path):
-                # if there are no errors, create the package and copy it to the current directory
-                if distro.build_package(project_path):
-                    print (_("Failed to build the packages"))
-                    sys.exit(-1)
-                if package_name != None:
-                    built.append(package_name)
+            if not distro.install_postdependencies(project_path):
+
+                # build the project itself
+                if not distro.build_project(project_path):
+                    # if there are no errors, create the package and copy it to the current directory
+                    if distro.build_package(project_path):
+                        print (_("Failed to build the packages"))
+                        sys.exit(-1)
+                    if package_name != None:
+                        built.append(package_name)
         # remove temporary data
         if config.clean:
             distro.cleanup()

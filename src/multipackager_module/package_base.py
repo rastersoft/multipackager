@@ -58,6 +58,7 @@ class package_base(object):
 
     def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
+        self.install_at_lib = False
         self.configuration = configuration
         self.distro_type = distro_type
         self.distro_name = distro_name
@@ -89,6 +90,9 @@ class package_base(object):
 
         # path of the project copy (outside the chroot environment; inside is always "/project")
         self.build_path = None
+
+        # this is the data stored in the setup.py script (if it is a python program)
+        self.pysetup = {}
 
 
     def copy_cache(self,origin_path,destination_path, force_delete = True):
@@ -135,6 +139,10 @@ class package_base(object):
                 print(_("Failed to initializate environment for {:s}").format(self.base_chroot_name))
                 return True # error!!!
 
+        return False
+
+
+    def install_postdependencies(self,project_path):
         return False
 
 
@@ -246,7 +254,10 @@ class package_base(object):
             shutil.rmtree(install_path,ignore_errors = True)
         os.makedirs(install_path)
 
-        return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make && make DESTDIR=/install_root install"')
+        if self.install_at_lib:
+            return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib && make && make DESTDIR=/install_root install"')
+        else:
+            return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make && make DESTDIR=/install_root install"')
 
 
     def build_autoconf(self,autogen):
@@ -278,42 +289,17 @@ class package_base(object):
         if not os.path.exists(final_path):
             return
 
-        f = open(final_path,"r")
-        found = False
-        name_re = re.compile('\s*,*\s*name *= *')
-        version_re = re.compile('\s*,*\s*version *= *')
-        first_line = True
-        self.python2 = True
-        for line in f:
-            line = line.strip()
-            if (first_line):
-                if -1 == line.find("python3"):
-                    self.python2 = True
-                else:
-                    self.python2 = False
-            first_line = False
-            pos = line.find("#")
-            if pos != -1:
-                line = line[:pos]
-            if line[:5] == "setup":
-                found = True
-
-            if not found:
-                continue
-
-            p = name_re.match(line)
-            if p != None:
-                retval = self.get_string(line[p.end():])
-                if retval != None:
-                    self.project_name = retval
-                continue
-
-            p = version_re.match(line)
-            if p != None:
-                retval = self.get_string(line[p.end():])
-                if retval != None:
-                    self.project_version = retval
-                continue
+        params = [ 'name', 'version', 'author', 'author-email', 'maintainer', 'maintainer-email','url','license','description','long-description','keywords' ]
+        for param in params:
+            prc = subprocess.Popen( [final_path , '--'+param], cwd=working_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            sout,serr = prc.communicate()
+            data = sout.decode().strip()
+            print("Asignando {:s} a {:s}".format(data,param))
+            self.pysetup[param] = data
+            if param == 'name' and data != '':
+                self.project_name = data
+            elif param == 'version' and data != '':
+                self.project_version = data
 
 
     def cleanup(self):
@@ -327,17 +313,22 @@ class package_base(object):
 
         print(_("Launching {:s}").format(str(command)))
         proc = subprocess.Popen(command, shell=True)
-        return proc.wait()
+        return (proc.wait() != 0)
 
 
-    def run_chroot(self,base_path,command):
+    def run_chroot(self,base_path,command,username = None):
 
         if self.architecture == "i386":
             personality = "x86"
         else:
             personality = "x86-64"
 
-        command = "systemd-nspawn -D {:s} --personality {:s} {:s}".format(base_path,personality,command)
+        if username != None:
+            userparam = "--user={:s}".format(username)
+        else:
+            userparam = ""
+
+        command = "systemd-nspawn {:s} -D {:s} --personality {:s} {:s}".format(userparam,base_path,personality,command)
         return self.run_external_program(command)
 
 

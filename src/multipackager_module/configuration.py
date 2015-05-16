@@ -71,7 +71,7 @@ class configuration:
                     print ("Error in line {:d}; incorrect number of parameters\n".format(line_counter))
                     has_error = True;
                     continue
-                if ((parameters[1] != "debian") and (parameters[1] != "ubuntu") and (parameters[1] != "fedora")) :
+                if ((parameters[1] != "debian") and (parameters[1] != "ubuntu") and (parameters[1] != "fedora") and (parameters[1] != "arch")) :
                     print ("Error in line {:d}: {:s} is not a valid linux distribution\n".format(line_counter,parameters[1]))
                     has_error = True;
                     continue
