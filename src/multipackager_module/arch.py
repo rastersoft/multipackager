@@ -292,8 +292,9 @@ class arch (multipackager_module.package_base.package_base):
 
     def install_postdependencies(self,project_path):
 
+        print("Aur: "+str(self.aur_dependencies))
         tmp_path = os.path.join(self.working_path,"built_tmp_packages")
-        for paths in os.listdir(tmp_path):
+        for paths in self.aur_dependencies:
             full_path = os.path.join("built_tmp_packages",paths)
             if self.build_AUR_package(full_path):
                 print (_("Failed to build package {:s}. Aborting").format(paths))
@@ -461,7 +462,7 @@ class arch (multipackager_module.package_base.package_base):
 
         for file in os.listdir(self.build_path):
             if (file[-11:]==".pkg.tar.xz"):
-                shutil.move(os.path.join(self.build_path,file), os.getcwd())
+                shutil.move(os.path.join(self.build_path,file), os.path.join(os.getcwd(),self.get_package_name(project_path)))
                 return False
         print(_("Unable to move the created package"))
         return True
