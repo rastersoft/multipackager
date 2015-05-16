@@ -70,7 +70,7 @@ setup(
         # 3 - Alpha
         # 4 - Beta
         # 5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
@@ -79,7 +79,7 @@ setup(
         'Programming Language :: Python :: 3'
     ],
 
-    keywords='package deb',
+    keywords='package deb rpm pacman',
 
     packages=['multipackager_module'],
 
