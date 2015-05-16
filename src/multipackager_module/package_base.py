@@ -294,7 +294,6 @@ class package_base(object):
             prc = subprocess.Popen( [final_path , '--'+param], cwd=working_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             sout,serr = prc.communicate()
             data = sout.decode().strip()
-            print("Asignando {:s} a {:s}".format(data,param))
             self.pysetup[param] = data
             if param == 'name' and data != '':
                 self.project_name = data
