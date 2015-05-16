@@ -129,7 +129,7 @@ class fedora (multipackager_module.package_base.package_base):
         """ Ensures that the chroot environment is updated with the lastest packages """
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
-        command = 'yum update'
+        command = 'yum update -y'
         if (0 != self.run_chroot(path,command)):
             return True # error!!!
 

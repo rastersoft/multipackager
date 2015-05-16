@@ -1,3 +1,7 @@
+0.14 (2015/05/16)
+ * Added support for Pacman, the Arch's package manager.
+0.13 (2015/05/09)
+ * Now doesn't ask if the user wants to continue when updating a Fedora system
 0.12 (2015/04/26)
  * Fixed a bug when launching a shell without specifying a linux distribution type and name 
 0.11 (2015/04/25)
