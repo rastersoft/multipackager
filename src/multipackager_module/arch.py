@@ -72,7 +72,7 @@ class arch (multipackager_module.package_base.package_base):
         shutil.rmtree(tmp_path, ignore_errors=True)
 
         os.makedirs(tmp_path)
-        server = "http://mirrors.kernel.org/archlinux"
+        server = self.configuration.arch_mirror
 
         if (server[-1] == '/'):
             server = server[:-1]

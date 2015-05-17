@@ -31,6 +31,7 @@ class configuration:
         self.config_file = "/etc/multipackager/config.cfg"
         self.clean = True
         self.revision = 1
+        self.arch_mirror = "http://mirrors.kernel.org/archlinux"
 
 
     def set_project_path(self,project_path):
@@ -100,6 +101,13 @@ class configuration:
                     has_error = True;
                     continue
                 self.mount_path.append(parameters[1])
+            elif (parameters[0] == "arch_mirror:"):
+                if (nparams != 2):
+                    print ("Error in line {:d}; incorrect number of parameters\n".format(line_counter))
+                    has_error = True;
+                    continue
+                self.arch_mirror = parameters[1]
+
         return has_error
 
 
