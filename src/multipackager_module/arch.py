@@ -124,6 +124,10 @@ class arch (multipackager_module.package_base.package_base):
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
+        command = "pacman -S make gcc patch"
+        if (0 != self.run_chroot(tmp_path,command)):
+            return True # error!!!
+
         os.sync()
         os.rename(tmp_path,path) # rename the folder to the definitive name
         os.sync()
