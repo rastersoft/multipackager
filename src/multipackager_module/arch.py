@@ -226,12 +226,26 @@ class arch (multipackager_module.package_base.package_base):
                     main_dependencies.append(dep) # the package is available in the oficial repository
             else:
                 package_dir = os.path.join(tmp_path,dep)
-                pkgbuild_path = os.path.join(package_dir,"PKGBUILD")
-                os.makedirs(package_dir)
-                command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/PKGBUILD -O {:s}".format(dep[:2],dep,pkgbuild_path)
+                pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep))
+                command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep,dep,pkgbuild_path)
                 if self.run_external_program(command):
-                    print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
+                    if dep[:7] != 'python2':
+                        print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
+                        return None
+                    # If it is a python2 package, and doesn't exists, try without the "2"
+                    dep2 = 'python'+dep[7:]
+                    pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep2))
+                    package_dir = os.path.join(tmp_path,dep2)
+                    command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep2,dep2,pkgbuild_path)
+                    if self.run_external_program(command):
+                        print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
+                        return None
+                    dep = dep2
+                command = 'bash -c "cd {:s} && tar xf {:s}.tar.gz"'.format(tmp_path,dep)
+                if self.run_external_program(command):
+                    print(_("The package {:s} could not be uncompressed.").format(dep))
                     return None
+                pkgbuild_path = os.path.join(package_dir,"PKGBUILD")
                 aur_dependencies.insert(0,dep) # the package is available in the AUR repository
                 tmpdeps = self.read_deps(pkgbuild_path, False)
                 for dep2 in tmpdeps:
