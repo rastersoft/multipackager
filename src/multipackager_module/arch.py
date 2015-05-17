@@ -124,7 +124,7 @@ class arch (multipackager_module.package_base.package_base):
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
-        command = "pacman -S --noconfirm make gcc patch cmake autoconf automake"
+        command = "pacman -S --noconfirm fakeroot make gcc patch cmake autoconf automake"
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
