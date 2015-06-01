@@ -287,6 +287,15 @@ if (args[1] == "clearcache"):
     clearcache(args,config)
     sys.exit(0)
 
+try:
+    os.makedirs(config.working_path)
+except:
+    pass
+try:
+    os.makedirs(config.cache_path)
+except:
+    pass
+
 nparams = len(args)
 
 if (nparams != 2) and (nparams != 5):
