@@ -108,8 +108,11 @@ class fedora (multipackager_module.package_base.package_base):
         os.remove(yumcfgpath)
 
         # for some reason, the RPM database is not complete, so it is a must to reinstall everything from inside the chroot environment
-        # umount /sys to avoid failure due to filesystem.rpm
-        command = 'bash -c "umount /sys && yum -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
+        # umount /sys to avoid failure due to filesystem.rpm. At least with Fedora 21
+        if self.distro_name == "21":
+            command = 'bash -c "umount /sys && yum -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
+        else:
+            command = 'bash -c "yum -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
         if (0 != self.run_chroot(tmp_path, command)):
             shutil.rmtree(tmp_path, ignore_errors=True)
             return True # error!!!
