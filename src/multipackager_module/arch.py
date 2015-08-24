@@ -233,18 +233,22 @@ class arch (multipackager_module.package_base.package_base):
                 pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep))
                 command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep,dep,pkgbuild_path)
                 if self.run_external_program(command):
-                    if dep[:7] != 'python2':
-                        print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
-                        return None
-                    # If it is a python2 package, and doesn't exists, try without the "2"
-                    dep2 = 'python'+dep[7:]
-                    pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep2))
-                    package_dir = os.path.join(tmp_path,dep2)
-                    command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep2,dep2,pkgbuild_path)
+                    command = "wget https://aur.archlinux.org/cgit/aur.git/snapshot/{:s}.tar.gz -O {:s}".format(dep,pkgbuild_path)
                     if self.run_external_program(command):
-                        print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
-                        return None
-                    dep = dep2
+                        if dep[:7] != 'python2':
+                            print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
+                            return None
+                        # If it is a python2 package, and doesn't exists, try without the "2"
+                        dep2 = 'python'+dep[7:]
+                        pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep2))
+                        package_dir = os.path.join(tmp_path,dep2)
+                        command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep2,dep2,pkgbuild_path)
+                        if self.run_external_program(command):
+                            command = "wget https://aur.archlinux.org/cgit/aur.git/snapshot/{:s}.tar.gz -O {:s}".format(dep2,pkgbuild_path)
+                            if self.run_external_program(command):
+                                print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
+                                return None
+                        dep = dep2
                 command = 'bash -c "cd {:s} && tar xf {:s}.tar.gz"'.format(tmp_path,dep)
                 if self.run_external_program(command):
                     print(_("The package {:s} could not be uncompressed.").format(dep))
@@ -296,7 +300,8 @@ class arch (multipackager_module.package_base.package_base):
 
         os.chmod(fullpath, 511) # 777 permissions
 
-        command = 'bash -c "cd {:s} && makepkg"'.format(path)
+
+        command = 'bash -c "mkdir -p ~/.gnupg && echo -e \\"keyserver hkp://keys.gnupg.net\nkeyserver-options auto-key-retrieve\\" > ~/.gnupg/gpg.conf && cd {:s} && makepkg"'.format(path)
         if self.run_chroot(self.working_path, command, "multipackager"):
             return True
 
@@ -393,6 +398,8 @@ class arch (multipackager_module.package_base.package_base):
 
     def build_package(self,project_path):
         """ Takes the binaries located at /install_root and build a package """
+
+        
 
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
