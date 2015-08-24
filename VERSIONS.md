@@ -1,3 +1,6 @@
+* Version 0.15 (2015/08/24
+   * Added support for both the old and new URI format for AUR repository (ARCH Linux)
+   * Now automagically downloads the GPG keys (ARCH Linux)
 * Version 0.14 (2015/05/16)
    * Added support for Pacman, the Arch's package manager.
 * Version 0.13 (2015/05/09)
