@@ -334,10 +334,10 @@ class arch (multipackager_module.package_base.package_base):
         makedepends = []
         pkg_data = configparser.ConfigParser()
         pkg_data.read(path)
-#         if 'depends' in pkg_data['DEFAULT']:
-#             deps = pkg_data['DEFAULT']['depends'].split(',')
-#             for dep in deps:
-#                 dependencies.append(dep.strip())
+        if 'depends' in pkg_data['DEFAULT']:
+            deps = pkg_data['DEFAULT']['depends'].split(',')
+            for dep in deps:
+                dependencies.append(dep.strip())
         if 'makedepends' in pkg_data['DEFAULT']:
             deps = pkg_data['DEFAULT']['makedepends'].split(',')
             for dep in deps:
