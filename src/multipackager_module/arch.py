@@ -352,7 +352,14 @@ class arch (multipackager_module.package_base.package_base):
             return dependencies
 
 
-    def install_dependencies(self,project_path):
+    def install_local_package_internal(self, file_name):
+        
+        if 0 != self.run_chroot(self.working_path, "pacman -U {:s}".format(file_name)):
+            return True
+        return False 
+
+
+    def install_dependencies(self,project_path,avoid_packages):
 
         """ Install the dependencies needed for building this package """
 
@@ -370,7 +377,12 @@ class arch (multipackager_module.package_base.package_base):
                 return True
             dependencies = self.read_deps(pacman_path,True)
 
-        return self.install_packages(dependencies)
+        deps = []
+        for dep in dependencies:
+            if avoid_packages.count(dep) == 0:
+                deps.append(dep)
+
+        return self.install_packages(deps)
 
 
     def build_python(self):

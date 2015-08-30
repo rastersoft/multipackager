@@ -89,7 +89,7 @@ This process is repeated for each of the triplets configured in the configuratio
 file.
 
 
-## THE CONFIGURATION FILE ##
+## THE GLOBAL CONFIGURATION FILE ##
 
 The configuration file is stored, by default, at **/etc/multipackager/config.cfg**,
 and is a file with the following structure:
@@ -130,6 +130,54 @@ It can be just a path, in which case it will be binded *as-is* in the chroot
 environment, or two paths joint with two dashes (--), which will mount the first
 path (from the host machine) in the second path (inside the virtual machine).
 This syntax is the same than the *--bind* command for *systemd-nspawn*.
+
+
+## THE LOCAL CONFIGURATION FILE ##
+
+A project can have a local configuration file. It must be in the project's root
+folder, and be named **multipackager.conf**. Thif is an *.INI* file with the
+following format:
+
+* Each section is named as a triplet, specifying for which OS are these entries.
+* Each entry has the format *package_name = /path/to/package*
+
+When creating packages from a project, the current triplet will be searched in the
+local configuration file. If found, the specified packages won't be downloaded from
+the remote repositories if needed for build dependencies, but the local package
+specified will be used instead. Also, the path can contain *wildcards*, and, when
+several packages match the rule, the most recent will be used. This allows to just
+point that file to a folder where all packages are drop, and Multipackager will
+use the most recent one, as expected.
+
+This allows to build a project that depends of another local project.
+
+An example is the file from *autovala_gedit*, a Gedit plugin for Autovala. Since
+this plugin needs the Autovala package, but it is also my project (and it is still
+not available in remote repositories), I included this local configuration file:
+
+[debian sid amd64]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala-sid_*_amd64.deb
+
+[debian sid i386]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala-sid_*_i386.deb
+
+[ubuntu vivid amd64]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala-vivid_*_amd64.deb
+
+[ubuntu vivid i386]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala-vivid_*_i386.deb
+
+[fedora 22 x86_64]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala.fedora22*.x86_64.rpm
+
+[fedora 22 i386]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala.fedora22*.i386.rpm
+
+[arch 2015.08.01 amd64]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala-*-x86_64.pkg.tar.xz
+
+[arch 2015.08.01 i386]
+autovala = /home/raster/workspace/pagina_local/html/descargas/autovala/autovala-*-i686.pkg.tar.xz
 
 
 ## PREPARING THE PROJECT ##

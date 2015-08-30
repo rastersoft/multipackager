@@ -205,23 +205,35 @@ class fedora (multipackager_module.package_base.package_base):
 
 
     @multipackager_module.package_base.call_with_cache
-    def install_dependencies_full(self,path):
+    def install_dependencies_full(self,path,deps):
 
         command = "yum -y install"
-        for dep in self.dependencies:
+        for dep in deps:
             command += " "+dep
         return self.run_chroot(path, command)
 
 
-    def install_dependencies(self,project_path):
+    def install_local_package_internal(self, file_name):
+        
+        if 0 != self.run_chroot(self.working_path, "rpm -ivh {:s}".format(file_name)):
+            return True
+        return False 
+
+
+    def install_dependencies(self,project_path,avoid_packages):
 
         """ Install the dependencies needed for building this package """
 
         if self.read_specs_data(project_path):
             return True
 
-        if (len(self.dependencies) != 0):
-            return self.install_dependencies_full(self.base_path)
+        deps = []
+        for d in self.dependencies:
+            if avoid_packages.count(d) == 0:
+                deps.append(d)
+
+        if (len(deps) != 0):
+            return self.install_dependencies_full(self.base_path,deps)
         return False
 
 

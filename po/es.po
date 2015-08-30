@@ -8,18 +8,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-04-20 16:57+0200\n"
-"PO-Revision-Date: 2015-04-20 16:59+0200\n"
+"POT-Creation-Date: 2015-08-30 17:27+0200\n"
+"PO-Revision-Date: 2015-08-30 17:32+0200\n"
 "Last-Translator: Sergio Costas <rastersoft@gmail.com>\n"
-"Language-Team: Español; Castellano <>\n"
+"Language-Team: Español; Castellano <rastersoft@gmail.com>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"X-Generator: Gtranslator 2.91.7\n"
 
-#: ../src/multipackager.py:65
+#: ../src/multipackager.py:68
 msgid ""
 "\n"
 "This program must be run as root\n"
@@ -27,83 +27,127 @@ msgstr ""
 "\n"
 "Este programa tiene que ejecutarse como root\n"
 
-#: ../src/multipackager.py:77
+#: ../src/multipackager.py:83
 msgid "Distro name {:s} unknown. Aborting."
 msgstr "Nombre de distribución {:s} desconocido. Abortando."
 
-#: ../src/multipackager.py:107
-msgid "Can't get the package name"
-msgstr "Imposible obtener el nombre del paquete"
+#: ../src/multipackager.py:161
+msgid "Can't get the package name for distro {:s}"
+msgstr "Imposible obtener el nombre del paquete para la distribución {:s}"
 
-#: ../src/multipackager.py:116
-msgid "Error when creating the working environment"
-msgstr "Error al crear el entorno de trabajo"
+#: ../src/multipackager.py:170
+msgid "Can't create working environment for package {:s} in distro {:s}"
+msgstr ""
+"No se pudo generar un entorno de trabajo para el paquete {:s} en la distro {:"
+"s}"
 
-#: ../src/multipackager.py:122
-msgid "Failed to build the packages"
-msgstr "No se han podido generar los paquetes"
+#: ../src/multipackager.py:181
+msgid "Can't prepare the working path inside the distro {:s} for package {:s}"
+msgstr ""
+"No se pudo preparar la ruta de trabajo en la distro {:s} para el paquete {:s}"
 
-#: ../src/multipackager.py:130
+#: ../src/multipackager.py:191
+msgid "Can't install package {:s} in the distro {:s}"
+msgstr "No se pudo instalar el paquete {:s} en la distro {:s}"
+
+#: ../src/multipackager.py:200
+msgid "Can't build the package {:s} in the distro {:s}"
+msgstr "No se pudo generar el paquete {:s} en la distro {:s}"
+
+#: ../src/multipackager.py:212
 msgid "Built packages:"
 msgstr "Paquetes generados:"
 
-#: ../src/multipackager.py:134
+#: ../src/multipackager.py:216
 msgid "Built packages: None"
 msgstr "Paquetes generados: Ninguno"
 
-#: ../src/multipackager.py:136
+#: ../src/multipackager.py:218
 msgid "Skipped packages:"
 msgstr "Paquetes omitidos:"
 
-#: ../src/multipackager.py:140
+#: ../src/multipackager.py:222
 msgid "Skipped packages: none"
 msgstr "Paquetes omitidos: ninguno"
 
-#: ../src/multipackager.py:157
+#: ../src/multipackager.py:224
+msgid "Failed packages:"
+msgstr "Paquetes fallidos:"
+
+#: ../src/multipackager.py:228
+msgid "Failed packages: none"
+msgstr "Paquetes fallidos: ninguno"
+
+#: ../src/multipackager.py:245
 msgid "The specified CHROOT environment at {:s} doesn't exists. Aborting."
 msgstr "El entorno CHROOT especificado en {:s} no existe. Abortando."
 
-#: ../src/multipackager.py:175
+#: ../src/multipackager.py:267
 msgid "The project folder exists; launching the shell without copying data"
 msgstr ""
 "La carpeta de proyecto ya existe; lanzando la shell sin copiar los datos"
 
-#: ../src/multipackager_module/configuration.py:58
+#: ../src/multipackager_module/configuration.py:59
 msgid "Can't find the configuration file at {:s}. Using default values."
 msgstr ""
 "No se ha encontrado el fichero de configuración en {:s}. Usando los valores "
 "por defecto."
 
-#: ../src/multipackager_module/configuration.py:122
+#: ../src/multipackager_module/configuration.py:130
 msgid "--config parameter must be followed by a path"
 msgstr "El parámetro --config tiene que ir seguido de una ruta a un fichero"
 
-#: ../src/multipackager_module/package_base.py:59
-msgid "Generating the environment for {:s}"
-msgstr "Creando el entorno para {:s}"
+#: ../src/multipackager_module/configuration.py:145
+msgid "--revision parameter must be followed by a number"
+msgstr "El parámetro --revision tiene que ir seguido de un número"
 
-#: ../src/multipackager_module/package_base.py:75
+#: ../src/multipackager_module/package_base.py:37
 msgid "Generating a backup for {:s}"
 msgstr "Creando una copia de {:s}"
 
-#: ../src/multipackager_module/package_base.py:87
+#: ../src/multipackager_module/package_base.py:142
+msgid "Generating the environment for {:s}"
+msgstr "Creando el entorno para {:s}"
+
+#: ../src/multipackager_module/package_base.py:144
+#: ../src/multipackager_module/package_base.py:150
+msgid "Failed to initializate environment for {:s}"
+msgstr "No se pudo inicializar el entorno para {:s}"
+
+#. copy the base system to the path where we want to work with to generate the package
+#: ../src/multipackager_module/package_base.py:175
+msgid "Failed to create the working environment at {:s} from {:s}"
+msgstr "No se pudo crear el entorno de trabajo en {:s} desde {:s}"
+
+#: ../src/multipackager_module/package_base.py:186
 msgid "Updating {:s}"
 msgstr "Actualizando {:s}"
 
-#: ../src/multipackager_module/package_base.py:115
-#: ../src/multipackager_module/package_base.py:135
-msgid "Creating working copy of {:s}"
-msgstr "Creando una copia de {:s}"
-
-#: ../src/multipackager_module/package_base.py:194
+#: ../src/multipackager_module/package_base.py:249
 msgid "Unknown build system"
 msgstr "Sistema de compilación desconocido"
 
-#: ../src/multipackager_module/package_base.py:288
+#: ../src/multipackager_module/package_base.py:324
 msgid "Launching {:s}"
 msgstr "Lanzando {:s}"
 
-#: ../src/multipackager_module/debian.py:152
+#: ../src/multipackager_module/debian.py:178
 msgid "There is no DEBIAN/UBUNTU folder with the package specific data"
 msgstr ""
 "No existe una carpeta DEBIAN/UBUNTU con los datos específicos para el paquete"
+
+#: ../src/multipackager_module/debian.py:183
+msgid "There is no CONTROL file with the package specific data"
+msgstr "No existe un fichero CONTROL con los datos específicos para el paquete"
+
+#: ../src/multipackager_module/debian.py:213
+msgid "Cant find any of these packages in the guest system:{:s}"
+msgstr ""
+"No se ha podido encontrar ninguno de estos paquetes en el sistema de "
+"trabajo: {:s}"
+
+#~ msgid "Failed to build the packages"
+#~ msgstr "No se han podido generar los paquetes"
+
+#~ msgid "Creating working copy of {:s}"
+#~ msgstr "Creando una copia de {:s}"
