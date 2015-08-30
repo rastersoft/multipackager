@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-04-20 16:57+0200\n"
+"POT-Creation-Date: 2015-08-30 17:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,85 +17,118 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/multipackager.py:65
+#: ../src/multipackager.py:68
 msgid ""
 "\n"
 "This program must be run as root\n"
 msgstr ""
 
-#: ../src/multipackager.py:77
+#: ../src/multipackager.py:83
 msgid "Distro name {:s} unknown. Aborting."
 msgstr ""
 
-#: ../src/multipackager.py:107
-msgid "Can't get the package name"
+#: ../src/multipackager.py:161
+msgid "Can't get the package name for distro {:s}"
 msgstr ""
 
-#: ../src/multipackager.py:116
-msgid "Error when creating the working environment"
+#: ../src/multipackager.py:170
+msgid "Can't create working environment for package {:s} in distro {:s}"
 msgstr ""
 
-#: ../src/multipackager.py:122
-msgid "Failed to build the packages"
+#: ../src/multipackager.py:181
+msgid "Can't prepare the working path inside the distro {:s} for package {:s}"
 msgstr ""
 
-#: ../src/multipackager.py:130
+#: ../src/multipackager.py:191
+msgid "Can't install package {:s} in the distro {:s}"
+msgstr ""
+
+#: ../src/multipackager.py:200
+msgid "Can't build the package {:s} in the distro {:s}"
+msgstr ""
+
+#: ../src/multipackager.py:212
 msgid "Built packages:"
 msgstr ""
 
-#: ../src/multipackager.py:134
+#: ../src/multipackager.py:216
 msgid "Built packages: None"
 msgstr ""
 
-#: ../src/multipackager.py:136
+#: ../src/multipackager.py:218
 msgid "Skipped packages:"
 msgstr ""
 
-#: ../src/multipackager.py:140
+#: ../src/multipackager.py:222
 msgid "Skipped packages: none"
 msgstr ""
 
-#: ../src/multipackager.py:157
+#: ../src/multipackager.py:224
+msgid "Failed packages:"
+msgstr ""
+
+#: ../src/multipackager.py:228
+msgid "Failed packages: none"
+msgstr ""
+
+#: ../src/multipackager.py:245
 msgid "The specified CHROOT environment at {:s} doesn't exists. Aborting."
 msgstr ""
 
-#: ../src/multipackager.py:175
+#: ../src/multipackager.py:267
 msgid "The project folder exists; launching the shell without copying data"
 msgstr ""
 
-#: ../src/multipackager_module/configuration.py:58
+#: ../src/multipackager_module/configuration.py:59
 msgid "Can't find the configuration file at {:s}. Using default values."
 msgstr ""
 
-#: ../src/multipackager_module/configuration.py:122
+#: ../src/multipackager_module/configuration.py:130
 msgid "--config parameter must be followed by a path"
 msgstr ""
 
-#: ../src/multipackager_module/package_base.py:59
-msgid "Generating the environment for {:s}"
+#: ../src/multipackager_module/configuration.py:145
+msgid "--revision parameter must be followed by a number"
 msgstr ""
 
-#: ../src/multipackager_module/package_base.py:75
+#: ../src/multipackager_module/package_base.py:37
 msgid "Generating a backup for {:s}"
 msgstr ""
 
-#: ../src/multipackager_module/package_base.py:87
+#: ../src/multipackager_module/package_base.py:142
+msgid "Generating the environment for {:s}"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:144
+#: ../src/multipackager_module/package_base.py:150
+msgid "Failed to initializate environment for {:s}"
+msgstr ""
+
+#. copy the base system to the path where we want to work with to generate the package
+#: ../src/multipackager_module/package_base.py:175
+msgid "Failed to create the working environment at {:s} from {:s}"
+msgstr ""
+
+#: ../src/multipackager_module/package_base.py:186
 msgid "Updating {:s}"
 msgstr ""
 
-#: ../src/multipackager_module/package_base.py:115
-#: ../src/multipackager_module/package_base.py:135
-msgid "Creating working copy of {:s}"
-msgstr ""
-
-#: ../src/multipackager_module/package_base.py:194
+#: ../src/multipackager_module/package_base.py:249
 msgid "Unknown build system"
 msgstr ""
 
-#: ../src/multipackager_module/package_base.py:288
+#: ../src/multipackager_module/package_base.py:324
 msgid "Launching {:s}"
 msgstr ""
 
-#: ../src/multipackager_module/debian.py:152
+#: ../src/multipackager_module/debian.py:178
 msgid "There is no DEBIAN/UBUNTU folder with the package specific data"
+msgstr ""
+
+#: ../src/multipackager_module/debian.py:183
+msgid "There is no CONTROL file with the package specific data"
+msgstr ""
+
+#: ../src/multipackager_module/debian.py:213
+msgid "Cant find any of these packages in the guest system:{:s}"
 msgstr ""

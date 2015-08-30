@@ -21,6 +21,8 @@ import sys
 import os
 import gettext
 import locale
+import configparser
+import fnmatch
 import multipackager_module.debian
 import multipackager_module.fedora
 import multipackager_module.arch
@@ -84,17 +86,65 @@ def get_distro_object(distro_name):
     return None
 
 
+def get_most_recent(filepath):
+    
+    path,fname = os.path.split(filepath)
+    if (path == None) or (path == ""):
+        path = "."
+    last_date = 0
+    final_file = None
+    for element in os.listdir(path):
+        fullpath = os.path.join(path,element)
+        if os.path.isdir(fullpath):
+            continue
+        if os.path.islink(fullpath):
+            continue
+        cdate = os.path.getmtime(fullpath)
+        if (fnmatch.fnmatch(element,fname)) and (cdate > last_date):
+            final_file = fullpath
+            last_date = cdate
+
+    return final_file
+
+
 def build_project(config,project_path):
 
     """ This function does all the work """
 
     built = []
     skipped = []
+    failed = []
 
     if (os.path.exists(os.path.join(project_path,"setup.py"))):
         is_python = True
     else:
         is_python = False
+
+    preinstall = {}
+    dont_install = {}
+
+    cfg = os.path.join(project_path,"multipackager.conf")
+    config_local = configparser.ConfigParser(allow_no_value=True)
+    if os.path.exists(cfg):
+        config_local.read(cfg)
+        # check the packages to preinstall in each case
+        for element_i in config_local.sections():
+            element = config_local[element_i]
+            list_packages = []
+            dont_install_p = []
+            for package_r in element:
+                f = get_most_recent(element[package_r])
+                if f == None:
+                    continue
+                list_packages.append(f)
+                dont_install_p.append(package_r)
+            if len(list_packages) != 0:
+                while element_i.find("  ") != -1:
+                    print(element_i)
+                    element_i = element_i.replace("  "," ")
+                preinstall[element_i] = list_packages
+                dont_install[element_i] = dont_install_p
+
 
     for element in config.distros:
 
@@ -108,8 +158,8 @@ def build_project(config,project_path):
 
         package_name = distro.get_package_name(project_path)
         if (package_name == True):
-            print(_("Can't get the package name"))
-            sys.exit(-1)
+            failed.append(_("Can't get the package name for distro {:s}").format(distro.distro_full_name))
+            continue
 
         if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
             skipped.append(package_name)
@@ -117,24 +167,43 @@ def build_project(config,project_path):
 
         # copy the environment to a working folder
         if distro.check_environment():
-            sys.exit(-1)
+            failed.append(_("Can't create working environment for package {:s} in distro {:s}").format(package_name,distro.distro_full_name))
+            continue
 
         # install the packages needed for building the project
-        if not distro.install_dependencies(project_path):
+        if distro.distro_full_name in dont_install:
+            avoid_packages = dont_install[distro.distro_full_name]
+        else:
+            avoid_packages = []
+        if (not distro.install_dependencies(project_path,avoid_packages)):
 
             if distro.prepare_working_path():
-                sys.exit(-1)
+                failed.append(_("Can't prepare the working path inside the distro {:s} for package {:s}").format(distro.distro_full_name,package_name))
+                if config.clean:
+                    distro.cleanup()
+                continue
+            had_error = False
+            if distro.distro_full_name in preinstall:
+                for package in preinstall[distro.distro_full_name]:
+                    print("Instalando "+package)
+                    if distro.install_local_package(package):
+                        had_error = True
+                        failed.append(_("Can't install package {:s} in the distro {:s}").format(package,distro.distro_full_name))
+
 
             if not distro.install_postdependencies(project_path):
 
                 # build the project itself
-                if not distro.build_project(project_path):
+                if (not had_error) and (not distro.build_project(project_path)):
                     # if there are no errors, create the package and copy it to the current directory
                     if distro.build_package(project_path):
-                        print (_("Failed to build the packages"))
-                        sys.exit(-1)
+                        failed.append(_("Can't build the package {:s} in the distro {:s}").format(package_name,distro.distro_full_name))
+                        if config.clean:
+                            distro.cleanup()
+                        continue
                     if package_name != None:
                         built.append(package_name)
+
         # remove temporary data
         if config.clean:
             distro.cleanup()
@@ -151,6 +220,12 @@ def build_project(config,project_path):
             print(l)
     else:
         print(_("Skipped packages: none"))
+    if len(failed) > 0:
+        print(_("Failed packages:"))
+        for l in failed:
+            print(l)
+    else:
+        print(_("Failed packages: none"))
 
 
 def launch_shell(argv,config):

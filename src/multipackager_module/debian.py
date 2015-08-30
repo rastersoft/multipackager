@@ -151,7 +151,15 @@ class debian (multipackager_module.package_base.package_base):
         return self.run_chroot(path, command)
 
 
-    def install_dependencies(self,project_path):
+    def install_local_package_internal(self, file_name):
+        
+        if 0 != self.run_chroot(self.working_path, "dpkg -i {:s}".format(file_name)):
+            if 0 != self.run_chroot(self.working_path, "apt-get install -f -y"):
+                return True
+        return False        
+
+
+    def install_dependencies(self,project_path,avoid_packages):
 
         """ Install the dependencies needed for building this package """
 
@@ -217,7 +225,11 @@ class debian (multipackager_module.package_base.package_base):
         f.close()
 
         if (len(dependencies) != 0):
-            return self.install_dependencies_full(self.base_path,dependencies)
+            deps2 = []
+            for d in dependencies:
+                if avoid_packages.count(d) == 0:
+                    deps2.append(d)
+            return self.install_dependencies_full(self.base_path,deps2)
         return False
 
 

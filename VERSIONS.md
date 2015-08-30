@@ -1,3 +1,6 @@
+* Version 0.16 (2015/08/30)
+   * Allows to install local packages before creating a package. Useful when creating a package that depends of another local project.
+   * Now, when the creation of a package fails, the system won't fail, but continue with the other OSs and, at the end, show which ones failed. 
 * Version 0.15 (2015/08/24)
    * Added support for both the old and new URI format for AUR repository (ARCH Linux)
    * Now automagically downloads the GPG keys (ARCH Linux)

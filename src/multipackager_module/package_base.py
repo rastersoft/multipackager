@@ -67,6 +67,8 @@ class package_base(object):
         self.project_version = "1.0"
         self.project_release = "1"
         self.python2 = False
+        self.distro_full_name = "{:s} {:s} {:s}".format(distro_type,distro_name,architecture)
+
 
         # name of the CHROOT environment to use
         self.base_chroot_name = self.distro_type+"_chroot_"+self.distro_name+"_"+self.architecture
@@ -93,6 +95,15 @@ class package_base(object):
 
         # this is the data stored in the setup.py script (if it is a python program)
         self.pysetup = {}
+
+
+    def install_local_package(self,file_path):
+        
+        shutil.copy(file_path,self.working_path)
+        if self.install_local_package_internal(os.path.join(os.path.sep,os.path.basename(file_path))):
+            return True
+        print("{:s} instalado bien".format(file_path))
+        return False
 
 
     def copy_cache(self,origin_path,destination_path, force_delete = True):
