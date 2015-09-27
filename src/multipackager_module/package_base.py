@@ -68,7 +68,7 @@ class package_base(object):
         self.project_release = "1"
         self.python2 = False
         self.distro_full_name = "{:s} {:s} {:s}".format(distro_type,distro_name,architecture)
-
+        self.program_size = 0
 
         # name of the CHROOT environment to use
         self.base_chroot_name = self.distro_type+"_chroot_"+self.distro_name+"_"+self.architecture
@@ -195,6 +195,20 @@ class package_base(object):
 
         if os.path.exists(self.base_cache_path):
             shutil.rmtree(self.base_cache_path, ignore_errors = True)
+
+
+    def get_project_size(self):
+        
+        """ Calculates the size of all the files that will be installed in the final system """
+
+        sum = 0        
+        final_path = os.path.join(self.working_path,"install_root")
+        for dirname, dirnames, filenames in os.walk(final_path):
+            for filename in filenames:
+                sum += os.path.getsize(os.path.join(dirname,filename))
+
+        self.program_size = sum
+        print("Tamano: {%s}" % sum)
 
 
     def build_project(self,project_path):

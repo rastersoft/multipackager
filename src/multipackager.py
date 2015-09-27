@@ -195,6 +195,7 @@ def build_project(config,project_path):
 
                 # build the project itself
                 if (not had_error) and (not distro.build_project(project_path)):
+                    distro.get_project_size()
                     # if there are no errors, create the package and copy it to the current directory
                     if distro.build_package(project_path):
                         failed.append(_("Can't build the package {:s} in the distro {:s}").format(package_name,distro.distro_full_name))

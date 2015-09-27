@@ -300,6 +300,9 @@ class debian (multipackager_module.package_base.package_base):
                 continue
             elif (line[:8] == "Version:"):
                 line = "Version: {:s}".format(self.project_version)
+                f2.write("Installed-Size: {:d}\n".format(int(self.program_size/1024)))
+            elif (line[:15] == "Installed-Size:"):
+                continue
             f2.write(line+"\n")
         f1.close()
         f2.close()
