@@ -334,7 +334,7 @@ class package_base(object):
 
         print(_("Launching {:s}").format(str(command)))
         proc = subprocess.Popen(command, shell=True)
-        return (proc.wait() != 0)
+        return proc.wait()
 
 
     def run_chroot(self,base_path,command,username = None):

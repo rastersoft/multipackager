@@ -179,12 +179,12 @@ class arch (multipackager_module.package_base.package_base):
 
             tmp = None
 
-            if full_line[:12] == "makedepends=":
+            if (full_line[:12] == "makedepends=") or (full_line[:12] == "makedepend =") :
                 if (full_line.find(")") == -1) and (full_line.find("(") != -1):
                     multiline = True
                     continue
                 tmp = full_line[12:].replace("(","").replace(")","").replace("'","").replace('"',"").strip().split(" ")
-            elif line[:8] == "depends=":
+            elif (line[:8] == "depends=") or (line[:8] == "depend ="):
                 if (full_line.find(")") == -1) and (full_line.find("(") != -1):
                     multiline = True
                     continue
@@ -232,9 +232,9 @@ class arch (multipackager_module.package_base.package_base):
                 package_dir = os.path.join(tmp_path,dep)
                 pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep))
                 command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep,dep,pkgbuild_path)
-                if self.run_external_program(command):
+                if 0 != self.run_external_program(command):
                     command = "wget https://aur.archlinux.org/cgit/aur.git/snapshot/{:s}.tar.gz -O {:s}".format(dep,pkgbuild_path)
-                    if self.run_external_program(command):
+                    if 0 != self.run_external_program(command):
                         if dep[:7] != 'python2':
                             print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
                             return None
@@ -243,14 +243,14 @@ class arch (multipackager_module.package_base.package_base):
                         pkgbuild_path = os.path.join(tmp_path,"{:s}.tar.gz".format(dep2))
                         package_dir = os.path.join(tmp_path,dep2)
                         command = "wget https://aur.archlinux.org/packages/{:s}/{:s}/{:s}.tar.gz -O {:s}".format(dep[:2],dep2,dep2,pkgbuild_path)
-                        if self.run_external_program(command):
+                        if 0 != self.run_external_program(command):
                             command = "wget https://aur.archlinux.org/cgit/aur.git/snapshot/{:s}.tar.gz -O {:s}".format(dep2,pkgbuild_path)
-                            if self.run_external_program(command):
+                            if 0 != self.run_external_program(command):
                                 print(_("The package {:s} is not available in the official repositories, neither in the AUR repositories.").format(dep))
                                 return None
                         dep = dep2
                 command = 'bash -c "cd {:s} && tar xf {:s}.tar.gz"'.format(tmp_path,dep)
-                if self.run_external_program(command):
+                if 0 != self.run_external_program(command):
                     print(_("The package {:s} could not be uncompressed.").format(dep))
                     return None
                 pkgbuild_path = os.path.join(package_dir,"PKGBUILD")
@@ -353,13 +353,13 @@ class arch (multipackager_module.package_base.package_base):
 
 
     def install_local_package_internal(self, file_name):
-        
-        if 0 != self.run_chroot(self.working_path, "pacman -U {:s}".format(file_name)):
+
+        if 0 != self.run_chroot(self.working_path, "pacman --noconfirm -U {:s}".format(file_name)):
             return True
         return False 
 
 
-    def install_dependencies(self,project_path,avoid_packages):
+    def install_dependencies(self,project_path,avoid_packages,preinstall):
 
         """ Install the dependencies needed for building this package """
 
@@ -377,6 +377,20 @@ class arch (multipackager_module.package_base.package_base):
                 return True
             dependencies = self.read_deps(pacman_path,True)
 
+        if self.distro_full_name in preinstall:
+            tmp_path = "/var/tmp/multipackager_arch_tmp"
+            pkg_path = os.path.join(tmp_path,".PKGINFO")
+            for f in preinstall[self.distro_full_name]:
+                if os.path.exists(tmp_path):
+                    shutil.rmtree(tmp_path, ignore_errors = True)
+                os.makedirs(tmp_path)
+                if 0 != self.run_external_program("tar -xf {:s} -C {:s}".format(f,tmp_path)):
+                    return True
+                if os.path.exists(pkg_path):
+                    dp = self.read_deps(pkg_path,False)
+                    for d in dp:
+                        dependencies.append(d)
+                
         deps = []
         for dep in dependencies:
             if avoid_packages.count(dep) == 0:

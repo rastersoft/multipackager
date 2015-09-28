@@ -1,3 +1,5 @@
+* Version 0.18 (2015/09/29)
+   * Now can install, in ARCH, dependencies from AUR for local packages
 * Version 0.17 (2015/09/27)
    * Removed the 'sync' commands, which speeds up the work.
    * Now adds the package size in debian packages

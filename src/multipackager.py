@@ -175,7 +175,7 @@ def build_project(config,project_path):
             avoid_packages = dont_install[distro.distro_full_name]
         else:
             avoid_packages = []
-        if (not distro.install_dependencies(project_path,avoid_packages)):
+        if (not distro.install_dependencies(project_path,avoid_packages,preinstall)):
 
             if distro.prepare_working_path():
                 failed.append(_("Can't prepare the working path inside the distro {:s} for package {:s}").format(distro.distro_full_name,package_name))
@@ -183,15 +183,15 @@ def build_project(config,project_path):
                     distro.cleanup()
                 continue
             had_error = False
-            if distro.distro_full_name in preinstall:
-                for package in preinstall[distro.distro_full_name]:
-                    print("Instalando "+package)
-                    if distro.install_local_package(package):
-                        had_error = True
-                        failed.append(_("Can't install package {:s} in the distro {:s}").format(package,distro.distro_full_name))
-
 
             if not distro.install_postdependencies(project_path):
+
+                if distro.distro_full_name in preinstall:
+                    for package in preinstall[distro.distro_full_name]:
+                        print("Instalando "+package)
+                        if distro.install_local_package(package):
+                            had_error = True
+                            failed.append(_("Can't install package {:s} in the distro {:s}").format(package,distro.distro_full_name))
 
                 # build the project itself
                 if (not had_error) and (not distro.build_project(project_path)):
