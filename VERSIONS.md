@@ -1,3 +1,6 @@
+* Version 0.17 (2015/09/27)
+   * Removed the 'sync' commands, which speeds up the work.
+   * Now adds the package size in debian packages
 * Version 0.16 (2015/08/30)
    * Allows to install local packages before creating a package. Useful when creating a package that depends of another local project.
    * Now, when the creation of a package fails, the system won't fail, but continue with the other OSs and, at the end, show which ones failed. 

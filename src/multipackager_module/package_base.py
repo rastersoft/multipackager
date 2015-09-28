@@ -39,8 +39,6 @@ def call_with_cache(func):
         if self.copy_cache(path,backup_path):
             return True
 
-        os.sync() # sync disks
-
         if (func(*args)):
             shutil.rmtree(self.base_path, ignore_errors=True)
             os.rename(backup_path,self.base_path) # rename the backup folder to the original name
@@ -48,7 +46,6 @@ def call_with_cache(func):
             return True # error!
 
         shutil.rmtree(backup_path, ignore_errors=True)
-        os.sync() # sync disks
         return False
 
     return inner
