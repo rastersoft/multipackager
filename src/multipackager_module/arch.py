@@ -179,7 +179,7 @@ class arch (multipackager_module.package_base.package_base):
 
             tmp = None
 
-            if (full_line[:12] == "makedepends=") or (full_line[:12] == "makedepend ="):
+            if (full_line[:12] == "makedepends=") or (full_line[:12] == "makedepend =") :
                 if (full_line.find(")") == -1) and (full_line.find("(") != -1):
                     multiline = True
                     continue
@@ -354,12 +354,12 @@ class arch (multipackager_module.package_base.package_base):
 
     def install_local_package_internal(self, file_name):
 
-        if 0 != self.run_chroot(self.working_path, "pacman -U {:s}".format(file_name)):
+        if 0 != self.run_chroot(self.working_path, "pacman --noconfirm -U {:s}".format(file_name)):
             return True
         return False 
 
 
-    def install_dependencies(self,project_path,avoid_packages):
+    def install_dependencies(self,project_path,avoid_packages,preinstall):
 
         """ Install the dependencies needed for building this package """
 
@@ -377,6 +377,20 @@ class arch (multipackager_module.package_base.package_base):
                 return True
             dependencies = self.read_deps(pacman_path,True)
 
+        if self.distro_full_name in preinstall:
+            tmp_path = "/var/tmp/multipackager_arch_tmp"
+            pkg_path = os.path.join(tmp_path,".PKGINFO")
+            for f in preinstall[self.distro_full_name]:
+                if os.path.exists(tmp_path):
+                    shutil.rmtree(tmp_path, ignore_errors = True)
+                os.makedirs(tmp_path)
+                if 0 != self.run_external_program("tar -xf {:s} -C {:s}".format(f,tmp_path)):
+                    return True
+                if os.path.exists(pkg_path):
+                    dp = self.read_deps(pkg_path,False)
+                    for d in dp:
+                        dependencies.append(d)
+                
         deps = []
         for dep in dependencies:
             if avoid_packages.count(dep) == 0:

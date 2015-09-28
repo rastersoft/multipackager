@@ -159,7 +159,7 @@ class debian (multipackager_module.package_base.package_base):
         return False        
 
 
-    def install_dependencies(self,project_path,avoid_packages):
+    def install_dependencies(self,project_path,avoid_packages,preinstall):
 
         """ Install the dependencies needed for building this package """
 
