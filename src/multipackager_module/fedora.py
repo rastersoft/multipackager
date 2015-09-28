@@ -215,7 +215,7 @@ class fedora (multipackager_module.package_base.package_base):
 
     def install_local_package_internal(self, file_name):
         
-        if 0 != self.run_chroot(self.working_path, "rpm -ivh {:s}".format(file_name)):
+        if 0 != self.run_chroot(self.working_path, "yum install -y {:s}".format(file_name)):
             return True
         return False 
 

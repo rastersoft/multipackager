@@ -275,7 +275,7 @@ class debian (multipackager_module.package_base.package_base):
         package_path = os.path.join(self.working_path,"install_root","DEBIAN")
         os.makedirs(package_path)
         command = "cp -a {:s} {:s}".format(os.path.join(debian_path,"*"),package_path)
-        if self.run_external_program(command):
+        if 0 != self.run_external_program(command):
             return True
 
         self.set_perms(os.path.join(package_path,"preinst"))
