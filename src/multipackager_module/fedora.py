@@ -104,7 +104,7 @@ class fedora (multipackager_module.package_base.package_base):
             shutil.rmtree(tmp_path, ignore_errors=True)
             return True # error!!!
 
-        shutil.rmtree(yumrepospath)
+        shutil.rmtree(yumrepospath, ignore_errors=True)
         os.remove(yumcfgpath)
 
         # for some reason, the RPM database is not complete, so it is a must to reinstall everything from inside the chroot environment
@@ -217,7 +217,7 @@ class fedora (multipackager_module.package_base.package_base):
         
         if 0 != self.run_chroot(self.working_path, "yum install -y {:s}".format(file_name)):
             return True
-        return False 
+        return False
 
 
     def install_dependencies(self,project_path,avoid_packages,preinstall):

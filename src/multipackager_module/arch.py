@@ -356,7 +356,7 @@ class arch (multipackager_module.package_base.package_base):
 
         if 0 != self.run_chroot(self.working_path, "pacman --noconfirm -U {:s}".format(file_name)):
             return True
-        return False 
+        return False
 
 
     def install_dependencies(self,project_path,avoid_packages,preinstall):
@@ -425,8 +425,10 @@ class arch (multipackager_module.package_base.package_base):
     def build_package(self,project_path):
         """ Takes the binaries located at /install_root and build a package """
 
-        
+        build_path = os.path.join(self.build_path,"build")
+        shutil.rmtree(build_path, ignore_errors=True)
 
+        print("\n\n\nCreating "+build_path+"\n\n\n")
         setup_python = os.path.join(self.build_path,"setup.py")
         if (os.path.exists(setup_python)):
             is_python = True

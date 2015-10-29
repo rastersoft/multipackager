@@ -198,7 +198,7 @@ class package_base(object):
         
         """ Calculates the size of all the files that will be installed in the final system """
 
-        sum = 0        
+        sum = 0
         final_path = os.path.join(self.working_path,"install_root")
         for dirname, dirnames, filenames in os.walk(final_path):
             for filename in filenames:
@@ -326,7 +326,7 @@ class package_base(object):
     def cleanup(self):
 
         if self.working_path != None:
-            shutil.rmtree(self.working_path)
+            shutil.rmtree(self.working_path, ignore_errors=True)
         return False
 
 

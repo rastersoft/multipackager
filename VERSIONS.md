@@ -1,3 +1,7 @@
+* Version 0.20 (2015/10/29)
+   * Now doesn't fail if the *build* folder doesn't exists in binary projects
+* Version 0.19 (2015/10/26)
+   * Now removes the *build* folder in python3 projects when building for ARCH, so it won't fail
 * Version 0.18 (2015/09/29)
    * Now can install, in ARCH, dependencies from AUR for local packages
 * Version 0.17 (2015/09/27)
@@ -5,7 +9,7 @@
    * Now adds the package size in debian packages
 * Version 0.16 (2015/08/30)
    * Allows to install local packages before creating a package. Useful when creating a package that depends of another local project.
-   * Now, when the creation of a package fails, the system won't fail, but continue with the other OSs and, at the end, show which ones failed. 
+   * Now, when the creation of a package fails, the system won't fail, but continue with the other OSs and, at the end, show which ones failed.
 * Version 0.15 (2015/08/24)
    * Added support for both the old and new URI format for AUR repository (ARCH Linux)
    * Now automagically downloads the GPG keys (ARCH Linux)
@@ -15,7 +19,7 @@
 * Version 0.13 (2015/05/09)
    * Now doesn't ask if the user wants to continue when updating a Fedora system
 * Version 0.12 (2015/04/26)
-   * Fixed a bug when launching a shell without specifying a linux distribution type and name 
+   * Fixed a bug when launching a shell without specifying a linux distribution type and name
 * Version 0.11 (2015/04/25)
    * Now keeps two caches, one with all the packages already installed in previous builds, and another (with a bare minimum system) for test shells, so the package creation process is much faster
    * Allows to specify the package revision in the command line
