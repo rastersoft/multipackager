@@ -31,6 +31,7 @@ class fedora (multipackager_module.package_base.package_base):
             architecture = "x86_64"
 
         multipackager_module.package_base.package_base.__init__(self, configuration, distro_type, distro_name, architecture,cache_name)
+        self.distro_number = int(self.distro_name)
 
 
     def check_path_in_builds(self,project_path):
@@ -98,7 +99,10 @@ class fedora (multipackager_module.package_base.package_base):
 
         os.makedirs(os.path.join(tmp_path,"var","lib","rpm"))
 
-        packages = "fedora-release bash yum util-linux"
+        if self.distro_number <= 21:
+            packages = "fedora-release bash yum util-linux"
+        else:
+            packages = "fedora-release bash dnf util-linux"
         command = "yum -y --config={:s} --releasever={:s} --nogpg --installroot={:s} install {:s}".format(yumcfgpath,self.distro_name,tmp_path,packages)
         if (0 != self.run_external_program(command)):
             shutil.rmtree(tmp_path, ignore_errors=True)
@@ -109,10 +113,10 @@ class fedora (multipackager_module.package_base.package_base):
 
         # for some reason, the RPM database is not complete, so it is a must to reinstall everything from inside the chroot environment
         # umount /sys to avoid failure due to filesystem.rpm. At least with Fedora 21
-        if self.distro_name == "21":
+        if self.distro_number <= 21:
             command = 'bash -c "umount /sys && yum -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
         else:
-            command = 'bash -c "yum -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
+            command = 'bash -c "dnf -y --releasever={:s} install {:s}"'.format(self.distro_name,packages)
         if (0 != self.run_chroot(tmp_path, command)):
             shutil.rmtree(tmp_path, ignore_errors=True)
             return True # error!!!
@@ -132,7 +136,10 @@ class fedora (multipackager_module.package_base.package_base):
         """ Ensures that the chroot environment is updated with the lastest packages """
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
-        command = 'yum update -y'
+        if self.distro_number <= 21:
+            command = 'yum update -y'
+        else:
+            command = 'dnf update -y'
         if (0 != self.run_chroot(path,command)):
             return True # error!!!
 
@@ -207,7 +214,10 @@ class fedora (multipackager_module.package_base.package_base):
     @multipackager_module.package_base.call_with_cache
     def install_dependencies_full(self,path,deps):
 
-        command = "yum -y install"
+        if self.distro_number <= 21:
+            command = "yum -y install"
+        else:
+            command = "dnf -y install"
         for dep in deps:
             command += " "+dep
         return self.run_chroot(path, command)
@@ -215,7 +225,12 @@ class fedora (multipackager_module.package_base.package_base):
 
     def install_local_package_internal(self, file_name):
         
-        if 0 != self.run_chroot(self.working_path, "yum install -y {:s}".format(file_name)):
+        if self.distro_number <= 21:
+            command = "yum install -y {:s}".format(file_name)
+        else:
+            command = "dnf install -y {:s}".format(file_name)
+            
+        if 0 != self.run_chroot(self.working_path, command):
             return True
         return False
 

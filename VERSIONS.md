@@ -1,3 +1,5 @@
+* Version 0.21 (2015/11/08)
+   * Now uses DNF for fedora 22 and greater, instead of YUM
 * Version 0.20 (2015/10/29)
    * Now doesn't fail if the *build* folder doesn't exists in binary projects
 * Version 0.19 (2015/10/26)
