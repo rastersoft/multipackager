@@ -459,7 +459,7 @@ class arch (multipackager_module.package_base.package_base):
             if (self.pysetup["url"] != "UNKNOWN"):
                 f2.write('url={:s}\n'.format(self.pysetup["url"]))
             if (self.pysetup["license"] != "UNKNOWN"):
-                f2.write('license={:s}\n'.format(self.pysetup["license"]))
+                f2.write("license=( '{:s}')\n".format(self.pysetup["license"]))
             f2.write("arch=( 'any' )\n")
             pacman_path = os.path.join(project_path,"stpacman.cfg")
             if os.path.exists(pacman_path):

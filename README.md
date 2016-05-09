@@ -10,7 +10,7 @@ and packaging process for each one. It allows to create packages for i386 and
 amd64 for any available version of Debian, Ubuntu, Fedora and Arch linux.
 
 
-## USAGE ## 
+## USAGE ##
 
 **multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* *[--noclean]* project_folder  
 **multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* *[--noclean]* project_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
@@ -21,6 +21,7 @@ amd64 for any available version of Debian, Ubuntu, Fedora and Arch linux.
 **multipackager.py** *[--config config_file]* clearcache  
 **multipackager.py** *[--config config_file]* clearcache {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
 
+It must be called as root, because it needs to create containers and mount OverlayFS systems.
 
 ## INSTALATION ##
 
@@ -35,6 +36,7 @@ Multipackager have the following dependencies:
     yum
     systemd
     wget
+    overlayfs
 
 Debootstrap is used to generate the basic CHROOT environment for the debian
 based distros; yum is used for the same thing, but for fedora based ones;

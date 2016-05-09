@@ -1,3 +1,5 @@
+* Version 0.22 (2016/05/10)
+   * Now uses OverlayFS to speed up all the operations, avoiding the full copy of the images (for backing up purposes) before doing any operation
 * Version 0.21 (2015/11/08)
    * Now uses DNF for fedora 22 and greater, instead of YUM
 * Version 0.20 (2015/10/29)

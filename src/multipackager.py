@@ -157,10 +157,10 @@ def build_project(config,project_path):
         distro = distroclass(config,element["distro"],element["name"],element["architecture"],"builder")
 
         package_name = distro.get_package_name(project_path)
+
         if (package_name == True):
             failed.append(_("Can't get the package name for distro {:s}").format(distro.distro_full_name))
             continue
-
         if (package_name != None) and (os.path.exists(os.path.join(os.getcwd(),package_name))):
             skipped.append(package_name)
             continue
@@ -175,9 +175,9 @@ def build_project(config,project_path):
             avoid_packages = dont_install[distro.distro_full_name]
         else:
             avoid_packages = []
-        if (not distro.install_dependencies(project_path,avoid_packages,preinstall)):
 
-            if distro.prepare_working_path():
+        if (not distro.install_dependencies(project_path,avoid_packages,preinstall)):
+            if distro.prepare_working_path_overlay():
                 failed.append(_("Can't prepare the working path inside the distro {:s} for package {:s}").format(distro.distro_full_name,package_name))
                 if config.clean:
                     distro.cleanup()
@@ -185,14 +185,12 @@ def build_project(config,project_path):
             had_error = False
 
             if not distro.install_postdependencies(project_path):
-
                 if distro.distro_full_name in preinstall:
                     for package in preinstall[distro.distro_full_name]:
-                        print("Instalando "+package)
+                        print(_("Installing package {:s}").format(package))
                         if distro.install_local_package(package):
                             had_error = True
                             failed.append(_("Can't install package {:s} in the distro {:s}").format(package,distro.distro_full_name))
-
                 # build the project itself
                 if (not had_error) and (not distro.build_project(project_path)):
                     distro.get_project_size()

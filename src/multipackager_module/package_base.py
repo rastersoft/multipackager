@@ -23,6 +23,7 @@ import os
 import shutil
 import re
 import functools
+import stat
 
 def call_with_cache(func):
 
@@ -32,27 +33,113 @@ def call_with_cache(func):
         self = args[0]
         path = args[1]
 
-        backup_path = path+".backup"
+        overlay_path = path+".empty"
+        mount_path = path+".mount"
+        work_path = path+".work"
 
-        print(_("Generating a backup for {:s}").format(path))
+        print(_("Sanitary umount, to ensure that there aren't old mounting points"))
 
-        if self.copy_cache(path,backup_path):
-            return True
+        self.run_external_program("umount {:s}".format(mount_path))
+        print(_("Mounting overlayfs for {:s} at {:s}, using {:s} for new files").format(path,mount_path,overlay_path))
 
-        if (func(*args)):
-            shutil.rmtree(self.base_path, ignore_errors=True)
-            os.rename(backup_path,self.base_path) # rename the backup folder to the original name
-            os.sync() # sync disks
-            return True # error!
+        # remove data inside destination path
+        shutil.rmtree(overlay_path, ignore_errors=True)
+        shutil.rmtree(mount_path, ignore_errors=True)
+        shutil.rmtree(work_path, ignore_errors=True)
+        try:
+            os.mkdir(overlay_path)
+        except:
+            pass
+        try:
+            os.mkdir(mount_path)
+        except:
+            pass
+        try:
+            os.mkdir(work_path)
+        except:
+            pass
 
-        shutil.rmtree(backup_path, ignore_errors=True)
-        return False
+        if (0 != self.run_external_program('mount -t overlay -o rw,lowerdir="{:s}",upperdir="{:s}",workdir="{:s}" overlay "{:s}"'.format(path,overlay_path,work_path,mount_path))):
+            return True # error!!!
+
+        args2 = []
+        for a in range(len(args)):
+            if a == 1:
+                args2.append(mount_path)
+            else:
+                args2.append(args[a])
+
+        try:
+            retval = func(*args2)
+        except:
+            retval = true
+
+        self.run_external_program("umount {:s}".format(mount_path))
+        if (not retval):
+            print(_("Mixing file systems"))
+            self.merge_overlay(path,overlay_path)
+
+        shutil.rmtree(overlay_path, ignore_errors=True)
+        shutil.rmtree(mount_path, ignore_errors=True)
+        shutil.rmtree(work_path, ignore_errors=True)
+        os.sync() # sync disks
+
+        return retval
 
     return inner
 
 
 class package_base(object):
 
+    def full_delete(self,path):
+
+        if os.path.exists(path) is False:
+            return
+
+        status = os.lstat(path)
+        if stat.S_ISDIR(status.st_mode) is True:
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+
+    def merge_overlay(self,path,overlay_path):
+        
+        for f in os.listdir(overlay_path):
+            original_file = os.path.join(path,f)
+            final_file = os.path.join(overlay_path,f)
+            status = os.lstat(final_file)
+
+            # if it is a character device with 0 as major number, the original file/folder must be deleted
+            if (stat.S_ISCHR(status.st_mode) is True) and (os.major(status.st_rdev) == 0):
+                self.full_delete(original_file)
+                continue
+
+            # if it is a newly created file or folder, we just move it. That way it is faster and everything is preserved
+            if os.path.exists(original_file) is False:
+                self.run_external_program('mv "{:s}" "{:s}"'.format(final_file,original_file), False)
+                continue
+
+            ostatus = os.lstat(original_file)
+            # if it is a file, just copy it and overwrite
+            if (stat.S_ISDIR(status.st_mode) is False):
+                self.full_delete(original_file)
+                self.run_external_program('cp -a "{:s}" "{:s}"'.format(final_file,original_file), False)
+                continue
+
+            # if the new element is a folder, but the old is a file, delete the file and move the folder
+            if (stat.S_ISDIR(ostatus.st_mode) is False):
+                self.full_delete(original_file)
+                self.run_external_program('mv "{:s}" "{:s}"'.format(final_file,original_file), False)
+                continue
+
+            # if we reach here, both elements are folders, so let's check them recursively
+            shutil.copystat(final_file,original_file) # set permission bits
+            if (status.st_uid != ostatus.st_uid) or (status.st_gid != ostatus.st_gid):
+                shutil.chown(original_file,status.st_uid,status.st_gid)
+            self.merge_overlay(original_file,final_file)
+
+        
     def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
         self.install_at_lib = False
@@ -154,11 +241,57 @@ class package_base(object):
         return False
 
 
+    def cleanup(self):
+
+        if self.working_path != None:
+            shutil.rmtree(self.working_path, ignore_errors=True)
+            if self.used_overlay:
+                self.run_external_program('umount "{:s}"'.format(self.working_path))
+        if self.upper_path != None:
+            shutil.rmtree(self.upper_path, ignore_errors=True)
+        if self.overlay_path != None:
+            shutil.rmtree(self.overlay_path, ignore_errors=True)
+        
+        return False
+
+
+    def prepare_working_path_overlay(self):
+
+        """ Creates an overlay of the chroot environment to keep the original untouched. """
+
+        self.working_path = os.path.join(self.configuration.working_path,self.base_chroot_name)
+        self.upper_path = self.working_path+".upper"
+        self.overlay_path = self.working_path+".overlay"
+        original_path = self.base_path
+        self.used_overlay = True
+
+        shutil.rmtree(self.working_path, ignore_errors=True)
+        shutil.rmtree(self.upper_path, ignore_errors=True)
+        shutil.rmtree(self.overlay_path, ignore_errors=True)
+        os.mkdir(self.upper_path)
+        os.mkdir(self.overlay_path)
+        os.mkdir(self.working_path)
+        
+        if (0 != self.run_external_program('mount -t overlay -o rw,lowerdir="{:s}",upperdir="{:s}",workdir="{:s}" overlay "{:s}"'.format(original_path,self.upper_path,self.overlay_path,self.working_path))):
+            print(_("Failed to create the working environment at {:s} from {:s}").format(self.working_path,original_path))
+            return True # error!!!
+
+        # environment ready
+        return False
+
+
+    
+
+
     def prepare_working_path(self,final_path = None):
 
         """ Creates a working copy of the chroot environment to keep the original untouched.
             If final_path is None, will copy the compilation cache (base_path) to a working path; if not,
             will copy the bare minimum cache for shells (base_cache_path) to that path """
+
+        self.upper_path = None
+        self.overlay_path = None
+        self.used_overlay = False
 
         if final_path == None:
             self.working_path = os.path.join(self.configuration.working_path,self.base_chroot_name)
@@ -323,16 +456,10 @@ class package_base(object):
                 self.project_version = data
 
 
-    def cleanup(self):
+    def run_external_program(self,command,show_msg = True):
 
-        if self.working_path != None:
-            shutil.rmtree(self.working_path, ignore_errors=True)
-        return False
-
-
-    def run_external_program(self,command):
-
-        print(_("Launching {:s}").format(str(command)))
+        if show_msg:
+            print(_("Launching {:s}").format(str(command)))
         proc = subprocess.Popen(command, shell=True)
         return proc.wait()
 
