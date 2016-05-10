@@ -179,7 +179,27 @@ class package_base(object):
 
         # this is the data stored in the setup.py script (if it is a python program)
         self.pysetup = {}
+        
+        self.used_overlay = False
+        self.upper_path = None
+        self.overlay_path = None
 
+
+    def cleanup(self):
+
+        if self.working_path != None:
+            shutil.rmtree(self.working_path, ignore_errors=True)
+            if self.used_overlay:
+                self.run_external_program('umount "{:s}"'.format(self.working_path))
+                self.used_overlay = False
+        if self.upper_path != None:
+            shutil.rmtree(self.upper_path, ignore_errors=True)
+            self.upper_path = None
+        if self.overlay_path != None:
+            shutil.rmtree(self.overlay_path, ignore_errors=True)
+            self.overlay_path = None
+        
+        return False
 
     def install_local_package(self,file_path):
         
@@ -238,20 +258,6 @@ class package_base(object):
 
 
     def install_postdependencies(self,project_path):
-        return False
-
-
-    def cleanup(self):
-
-        if self.working_path != None:
-            shutil.rmtree(self.working_path, ignore_errors=True)
-            if self.used_overlay:
-                self.run_external_program('umount "{:s}"'.format(self.working_path))
-        if self.upper_path != None:
-            shutil.rmtree(self.upper_path, ignore_errors=True)
-        if self.overlay_path != None:
-            shutil.rmtree(self.overlay_path, ignore_errors=True)
-        
         return False
 
 
