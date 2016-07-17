@@ -271,13 +271,15 @@ class package_base(object):
         original_path = self.base_path
         self.used_overlay = True
 
+        self.run_external_program('umount {:s}'.format(self.working_path))
+
         shutil.rmtree(self.working_path, ignore_errors=True)
         shutil.rmtree(self.upper_path, ignore_errors=True)
         shutil.rmtree(self.overlay_path, ignore_errors=True)
         os.mkdir(self.upper_path)
         os.mkdir(self.overlay_path)
         os.mkdir(self.working_path)
-        
+
         if (0 != self.run_external_program('mount -t overlay -o rw,lowerdir="{:s}",upperdir="{:s}",workdir="{:s}" overlay "{:s}"'.format(original_path,self.upper_path,self.overlay_path,self.working_path))):
             print(_("Failed to create the working environment at {:s} from {:s}").format(self.working_path,original_path))
             return True # error!!!
