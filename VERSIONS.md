@@ -1,3 +1,5 @@
+* Version 0.23 (2016/07/17)
+   * Now ensures that any OverlayFS has been unmounted before trying to mount it again (could happen in previous version if multipackager is interrupted and launched again)
 * Version 0.22 (2016/05/10)
    * Now uses OverlayFS to speed up all the operations, avoiding the full copy of the images (for backing up purposes) before doing any operation
 * Version 0.21 (2015/11/08)
