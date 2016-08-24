@@ -1,3 +1,7 @@
+* Version 0.24 (2016/08/25)
+   * Now shows the current distro being compiled in the terminal's titlebar
+   * Now shows the chroot path for the current shell in the terminal's titlebar
+   * Now the make for CMake projects is verbose
 * Version 0.23 (2016/07/17)
    * Now ensures that any OverlayFS has been unmounted before trying to mount it again (could happen in previous version if multipackager is interrupted and launched again)
 * Version 0.22 (2016/05/10)

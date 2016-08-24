@@ -152,7 +152,7 @@ def build_project(config,project_path):
             continue
 
         distroclass = get_distro_object(element["distro"])
-
+        sys.stdout.write("\x1b]2;"+_("Compiling for {:s} {:s}, {:s}").format(element["distro"],element["name"],element["architecture"])+"\x07")
         # create a DISTRO object of the right type
         distro = distroclass(config,element["distro"],element["name"],element["architecture"],"builder")
 
@@ -265,6 +265,7 @@ def launch_shell(argv,config):
         if (nparams != 3):
             print(_("The project folder exists; launching the shell without copying data"))
 
+    sys.stdout.write("\x1b]2;"+_("Launched shell at {:s}").format(env_path)+"\x07")
     command = ""
     for path in config.mount_path:
         command += "--bind={:s} ".format(path)

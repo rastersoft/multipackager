@@ -418,9 +418,9 @@ class package_base(object):
         os.makedirs(install_path)
 
         if self.install_at_lib:
-            return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib && make && make DESTDIR=/install_root install"')
+            return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib && make VERBOSE=1 && make DESTDIR=/install_root install"')
         else:
-            return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make && make DESTDIR=/install_root install"')
+            return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make VERBOSE=1 && make DESTDIR=/install_root install"')
 
 
     def build_autoconf(self,autogen):
