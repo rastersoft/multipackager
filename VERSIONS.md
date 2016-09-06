@@ -1,3 +1,5 @@
+* Version 0.25 (2016/09/06)
+   * Allows to specify different configuration folders for Debian/Ubuntu 32 and 64 bits
 * Version 0.24 (2016/08/25)
    * Now shows the current distro being compiled in the terminal's titlebar
    * Now shows the chroot path for the current shell in the terminal's titlebar

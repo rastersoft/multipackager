@@ -33,9 +33,15 @@ class debian (multipackager_module.package_base.package_base):
 
         if self.distro_type == "ubuntu":
             # Try the "ubuntu" folder, and if it doesn't exists, try with "debian" one
-            path_list = ["ubuntu","UBUNTU","Ubuntu","debian","DEBIAN","Debian"]
+            if self.architecture == "i386":
+                path_list = ["ubuntu32","UBUNTU32","Ubuntu32","ubuntu","UBUNTU","Ubuntu","debian32","DEBIAN32","Debian32","debian","DEBIAN","Debian"]
+            else:
+                path_list = ["ubuntu64","UBUNTU64","Ubuntu64","ubuntu","UBUNTU","Ubuntu","debian64","DEBIAN64","Debian64","debian","DEBIAN","Debian"]
         else:
-            path_list = ["debian","DEBIAN","Debian"]
+            if self.architecture == "i386":
+                path_list = ["debian32","DEBIAN32","Debian32","debian","DEBIAN","Debian"]
+            else:
+                path_list = ["debian64","DEBIAN64","Debian64","debian","DEBIAN","Debian"]
 
         for element in path_list:
             path = os.path.join(project_path,element)
@@ -156,7 +162,7 @@ class debian (multipackager_module.package_base.package_base):
         if 0 != self.run_chroot(self.working_path, "dpkg -i {:s}".format(file_name)):
             if 0 != self.run_chroot(self.working_path, "apt-get install -f -y"):
                 return True
-        return False        
+        return False
 
 
     def install_dependencies(self,project_path,avoid_packages,preinstall):
@@ -314,4 +320,3 @@ class debian (multipackager_module.package_base.package_base):
             return True
         shutil.move(os.path.join(self.working_path,package_name), os.getcwd())
         return False
-
