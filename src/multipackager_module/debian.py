@@ -191,8 +191,11 @@ class debian (multipackager_module.package_base.package_base):
 
         f = open (control_path,"r")
         for line in f:
-            if (line[:13] == "Build-Depends"):
-                tmp = line[13:].strip()
+            if (line[:7] == "Depends") or (line[:13] == "Build-Depends"):
+                if (line[:7] == "Depends"):
+                    tmp = line[7:].strip()
+                else:
+                    tmp = line[13:].strip()
                 if (tmp[0] == ':') or (tmp[0] == '='):
                     tmp = tmp[1:].strip()
                 tmp = tmp.split(",")

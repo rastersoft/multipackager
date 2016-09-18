@@ -1,3 +1,5 @@
+* Version 0.26 (2016/09/19)
+   * Installs all the packages needed for a project, instead of installing only the building ones
 * Version 0.25 (2016/09/06)
    * Allows to specify different configuration folders for Debian/Ubuntu 32 and 64 bits
 * Version 0.24 (2016/08/25)
