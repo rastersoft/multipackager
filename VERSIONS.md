@@ -1,3 +1,5 @@
+* Version 0.27 (2016/09/25)
+   * Now doesn't fail when debian dependencies have a version number requirement
 * Version 0.26 (2016/09/19)
    * Installs all the packages needed for a project, instead of installing only the building ones
 * Version 0.25 (2016/09/06)

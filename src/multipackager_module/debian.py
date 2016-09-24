@@ -192,7 +192,9 @@ class debian (multipackager_module.package_base.package_base):
         f = open (control_path,"r")
         for line in f:
             if (line[:7] == "Depends") or (line[:13] == "Build-Depends"):
-                if (line[:7] == "Depends"):
+                if (line[:8] == "Depends3"):
+                    tmp = line[8:].strip()
+                elif (line[:7] == "Depends"):
                     tmp = line[7:].strip()
                 else:
                     tmp = line[13:].strip()
@@ -203,6 +205,9 @@ class debian (multipackager_module.package_base.package_base):
                     tmp2 = element2.split("|")
                     # if it is a single package, just add it as-is
                     if (len(tmp2) == 1):
+                        pos = element2.find("(") # remove version info
+                        if (pos != -1):
+                            element2 = element2[:pos]
                         dependencies.append(element2.strip())
                         continue
                     # but if there are several optional packages, check each one and install the first found
