@@ -201,6 +201,9 @@ class fedora (multipackager_module.package_base.package_base):
                 if line[:14] == "BuildRequires:":
                     self.dependencies.append(line[14:].strip())
                     continue
+                if line[:9] == "Requires:":
+                    self.dependencies.append(line[9:].strip())
+                    continue
                 if line[:5] == "Name:":
                     self.project_name = line[5:].strip()
                     continue
