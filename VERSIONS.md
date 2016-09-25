@@ -1,3 +1,5 @@
+* Version 0.28 (2016/09/26)
+   * Installs all the packages needed also in RPM
 * Version 0.27 (2016/09/25)
    * Now doesn't fail when debian dependencies have a version number requirement
 * Version 0.26 (2016/09/19)
