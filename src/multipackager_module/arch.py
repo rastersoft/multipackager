@@ -124,7 +124,7 @@ class arch (multipackager_module.package_base.package_base):
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
-        command = "pacman -S --noconfirm fakeroot make gcc patch cmake autoconf automake"
+        command = "pacman -S --noconfirm fakeroot make gcc patch cmake autoconf automake meson ninja"
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
@@ -329,7 +329,7 @@ class arch (multipackager_module.package_base.package_base):
 
         if not os.path.exists(path):
             return []
-        
+
         dependencies = []
         makedepends = []
         pkg_data = configparser.ConfigParser()
@@ -376,6 +376,7 @@ class arch (multipackager_module.package_base.package_base):
                 print (_("There is no PKGBUILD file with the package specific data"))
                 return True
             dependencies = self.read_deps(pacman_path,True)
+            dependencies.append("meson")
 
         if self.distro_full_name in preinstall:
             tmp_path = "/var/tmp/multipackager_arch_tmp"
@@ -390,7 +391,7 @@ class arch (multipackager_module.package_base.package_base):
                     dp = self.read_deps(pkg_path,False)
                     for d in dp:
                         dependencies.append(d)
-                
+
         deps = []
         for dep in dependencies:
             if avoid_packages.count(dep) == 0:

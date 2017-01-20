@@ -117,7 +117,11 @@ class debian (multipackager_module.package_base.package_base):
             f.write("deb http://archive.ubuntu.com/ubuntu/ {:s} main restricted universe multiverse\n".format(self.distro_name))
         f.close()
 
-        command = 'apt-get update'
+        command = 'apt update'
+        if (0 != self.run_chroot(tmp_path,command)):
+            return True # error!!!
+
+        command = 'apt install meson ninja-build'
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
@@ -137,11 +141,11 @@ class debian (multipackager_module.package_base.package_base):
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
 
-        retval = self.run_chroot(path,"apt-get update")
+        retval = self.run_chroot(path,"apt update")
         if (retval != 0):
             return True # error!!!!
 
-        retval = self.run_chroot(path,"apt-get dist-upgrade -y")
+        retval = self.run_chroot(path,"apt dist-upgrade -y")
         if (retval != 0):
             return True # error!!!!
 
@@ -151,16 +155,16 @@ class debian (multipackager_module.package_base.package_base):
     @multipackager_module.package_base.call_with_cache
     def install_dependencies_full(self,path,dependencies):
 
-        command = "apt-get install -y"
+        command = "apt install -y"
         for dep in dependencies:
             command += " "+dep
         return self.run_chroot(path, command)
 
 
     def install_local_package_internal(self, file_name):
-        
+
         if 0 != self.run_chroot(self.working_path, "dpkg -i {:s}".format(file_name)):
-            if 0 != self.run_chroot(self.working_path, "apt-get install -f -y"):
+            if 0 != self.run_chroot(self.working_path, "apt install -f -y"):
                 return True
         return False
 
@@ -179,6 +183,8 @@ class debian (multipackager_module.package_base.package_base):
             dependencies.append("python-all")
             dependencies.append("fakeroot")
         else:
+            dependencies.append("meson")
+            dependencies.append("ninja-build")
             debian_path = self.check_path_in_builds(project_path)
             if debian_path == None:
                 print (_("There is no DEBIAN/UBUNTU folder with the package specific data"))
@@ -218,7 +224,7 @@ class debian (multipackager_module.package_base.package_base):
                         if (pos != -1):
                             element = element[:pos]
                         list_p += " "+element
-                        command = "apt-cache show {:s}".format(element)
+                        command = "apt show {:s}".format(element)
                         if (0 == self.run_chroot(self.base_path, command)):
                             dependencies.append(element.strip())
                             found = True

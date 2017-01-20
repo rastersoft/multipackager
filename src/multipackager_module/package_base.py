@@ -139,7 +139,7 @@ class package_base(object):
                 shutil.chown(original_file,status.st_uid,status.st_gid)
             self.merge_overlay(original_file,final_file)
 
-        
+
     def __init__(self, configuration, distro_type, distro_name, architecture, cache_name = None):
 
         self.install_at_lib = False
@@ -397,6 +397,10 @@ class package_base(object):
         elif (os.path.exists(os.path.join(self.build_path,"Makefile"))):
             if self.build_makefile():
                 return True
+            # Check if it is a Meson project
+        elif (os.path.exists(os.path.join(self.build_path,"meson.build"))):
+            if self.build_meson():
+                return True
         else:
             print (_("Unknown build system"))
             return True
@@ -421,6 +425,16 @@ class package_base(object):
             return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib && make VERBOSE=1 && make DESTDIR=/install_root install"')
         else:
             return self.run_chroot(self.working_path, 'bash -c "cd /project/install && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make VERBOSE=1 && make DESTDIR=/install_root install"')
+
+
+    def build_meson(self):
+
+        install_path = os.path.join(self.build_path,"meson")
+        if (os.path.exists(install_path)):
+            shutil.rmtree(install_path,ignore_errors = True)
+        os.makedirs(install_path)
+
+        return self.run_chroot(self.working_path, 'bash -c "cd /project/meson && meson .. && mesonconf -Dprefix=/usr && ninja && DESTDIR=/install_root ninja install"')
 
 
     def build_autoconf(self,autogen):

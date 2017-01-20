@@ -102,7 +102,7 @@ class fedora (multipackager_module.package_base.package_base):
         if self.distro_number <= 21:
             packages = "fedora-release bash yum util-linux"
         else:
-            packages = "fedora-release bash dnf util-linux"
+            packages = "fedora-release bash dnf util-linux meson"
         command = "yum -y --config={:s} --releasever={:s} --nogpg --installroot={:s} install {:s}".format(yumcfgpath,self.distro_name,tmp_path,packages)
         if (0 != self.run_external_program(command)):
             shutil.rmtree(tmp_path, ignore_errors=True)
@@ -174,6 +174,8 @@ class fedora (multipackager_module.package_base.package_base):
                     if 'version' in pkg_data['bdist_rpm']:
                         self.project_version = pkg_data['bdist_rpm']['version']
         else:
+            self.dependencies.append("meson")
+            self.dependencies.append("ninja-build")
             specs_path = self.check_path_in_builds(working_path)
             if (specs_path == None):
                 print(_("No rpm folder. Aborting."))
@@ -213,6 +215,15 @@ class fedora (multipackager_module.package_base.package_base):
                 if line[:8] == "Release:":
                     continue
 
+    def build_meson(self):
+
+        install_path = os.path.join(self.build_path,"meson")
+        if (os.path.exists(install_path)):
+            shutil.rmtree(install_path,ignore_errors = True)
+        os.makedirs(install_path)
+
+        return self.run_chroot(self.working_path, 'bash -c "cd /project/meson && meson .. && mesonconf -Dprefix=/usr && ninja-build && DESTDIR=/install_root ninja-build install"')
+
 
     @multipackager_module.package_base.call_with_cache
     def install_dependencies_full(self,path,deps):
@@ -227,12 +238,12 @@ class fedora (multipackager_module.package_base.package_base):
 
 
     def install_local_package_internal(self, file_name):
-        
+
         if self.distro_number <= 21:
             command = "yum install -y {:s}".format(file_name)
         else:
             command = "dnf install -y {:s}".format(file_name)
-            
+
         if 0 != self.run_chroot(self.working_path, command):
             return True
         return False
