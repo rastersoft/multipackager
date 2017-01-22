@@ -1,3 +1,6 @@
+* Version 0.30 (2017/01/22)
+   * Added support for Meson builder projects
+   * Allows to update in a single command all the distros based on the type (e.g. Update all debian distros)
 * Version 0.28 (2016/09/26)
    * Installs all the packages needed also in RPM
 * Version 0.27 (2016/09/25)

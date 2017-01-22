@@ -104,7 +104,7 @@ class package_base(object):
 
 
     def merge_overlay(self,path,overlay_path):
-        
+
         for f in os.listdir(overlay_path):
             original_file = os.path.join(path,f)
             final_file = os.path.join(overlay_path,f)
@@ -179,7 +179,7 @@ class package_base(object):
 
         # this is the data stored in the setup.py script (if it is a python program)
         self.pysetup = {}
-        
+
         self.used_overlay = False
         self.upper_path = None
         self.overlay_path = None
@@ -198,11 +198,11 @@ class package_base(object):
         if self.overlay_path != None:
             shutil.rmtree(self.overlay_path, ignore_errors=True)
             self.overlay_path = None
-        
+
         return False
 
     def install_local_package(self,file_path):
-        
+
         shutil.copy(file_path,self.working_path)
         if self.install_local_package_internal(os.path.join(os.path.sep,os.path.basename(file_path))):
             return True
@@ -288,8 +288,6 @@ class package_base(object):
         return False
 
 
-    
-
 
     def prepare_working_path(self,final_path = None):
 
@@ -336,7 +334,7 @@ class package_base(object):
 
 
     def get_project_size(self):
-        
+
         """ Calculates the size of all the files that will be installed in the final system """
 
         sum = 0

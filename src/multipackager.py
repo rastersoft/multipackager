@@ -55,6 +55,8 @@ def print_usage(doexit = True):
     print ("multipackager.py [--config config_file] shell vm_folder {i386|amd64}")
     print ("multipackager.py [--config config_file] shell vm_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] update")
+    print ("multipackager.py [--config config_file] update {debian|ubuntu|fedora|arch}")
+    print ("multipackager.py [--config config_file] update {debian|ubuntu|fedora|arch} version_name")
     print ("multipackager.py [--config config_file] update {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
     print ("multipackager.py [--config config_file] clearcache")
     print ("multipackager.py [--config config_file] clearcache {debian|ubuntu|fedora|arch} version_name {i386|amd64}")
@@ -87,7 +89,7 @@ def get_distro_object(distro_name):
 
 
 def get_most_recent(filepath):
-    
+
     path,fname = os.path.split(filepath)
     if (path == None) or (path == ""):
         path = "."
@@ -277,22 +279,27 @@ def update_envs(argv,config):
 
     nparams = len(argv)
 
-    if (nparams != 2) and (nparams != 5):
+    if (nparams < 2) and (nparams > 5):
         print_usage()
 
     retval = config.read_config_file()
     if (retval):
         sys.exit(-1)
 
-    if (nparams == 5):
-        retval = config.read_config_file()
-        config.delete_distros()
-        config.append_distro(sys.argv[2], sys.argv[3] ,sys.argv[4])
-        retval = False
+    param_distro = None if nparams < 3 else sys.argv[2]
+    param_name = None if nparams < 4 else sys.argv[3]
+    param_arch = None if nparams < 5 else sys.argv[4]
 
     updated = []
 
     for element in config.distros:
+
+        if (param_distro is not None) and (param_distro != element["distro"]):
+            continue
+        if (param_name is not None) and (param_name != element["name"]):
+            continue
+        if (param_arch is not None) and (param_arch != element["architecture"]):
+            continue
 
         found = False
         for l in updated:

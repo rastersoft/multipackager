@@ -17,7 +17,9 @@ amd64 for any available version of Debian, Ubuntu, Fedora and Arch linux.
 **multipackager.py** *[--config config_file]* shell vm_folder {i386|amd64}  
 **multipackager.py** *[--config config_file]* shell vm_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* update  
-**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch} version_name {i386|amd64}
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch}  
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch} version_name  
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
 **multipackager.py** *[--config config_file]* clearcache  
 **multipackager.py** *[--config config_file]* clearcache {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
 
@@ -49,7 +51,9 @@ systemd is needed to launch the virtual machines and keep them isolated
 Multipackager uses Debootstrap or YUM to automatically download and generate
 several virtual machines for the desired distros, versions and architectures.
 After that, it automatically compiles the specified project's source code for
-each one, and creates the corresponding package.
+each one, and creates the corresponding package. Of course, it caches the base
+virtual machines to avoid having to download hundreds of MBs every time a new
+package must be created.
 
 Each virtual machine is defined by a triplet of distribution type, distribution
 name and architecture. Currently only *debian*, *ubuntu*, *fedora* and *arch*
@@ -216,7 +220,7 @@ Multipackager needs some folders and files already available in the project fold
  ( https://docs.python.org/2.0/dist/creating-rpms.html ), the final and build
  dependencies for Fedora-based packages; and **stpacman.cfg**, which is an .INI
  file that contains extra data for creating the Arch package (more on this later).
- 
+
  Multipackager automatically adds **python3, python3-all, python3-stdeb, python-all**
  and **fakeroot** to the build dependencies, so you must add only other needed
  dependencies (like, in the case or multipackager, *pandoc*, used to convert the
@@ -259,10 +263,15 @@ will follow these rules, and use **ONLY the first one** that applies:
  make DESTDIR=/install_root install** to build the package and install it in the
  **install_root** folder.
 
- * finally, if a file **Makefile** exists in the project folder, multipackager
+ * if a file **Makefile** exists in the project folder, multipackager
  will presume that it is a classic Makefile project, and will run **make &&
  make PREFIX=/usr DESTDIR=/install_root install** to build the package and
  install it in the **install_root** folder.
+
+ * finally, if a file **meson.build** exists in the project folder, multipackager
+ will presume that it is a meson project, and will run **meson .. &&
+ mesonconf -Dprefix=/usr && ninja && DESTDIR=/install_root ninja install** inside
+ the *meson* folder to build the package and install it in the **install_root** folder.
 
 
 ## ARCH AND PYTHON 3 PROJECTS ##
@@ -286,7 +295,7 @@ used during installation for converting this markdown file to a manpage).
 A fictional example of this file is:
 
     [DEFAULT]
-    makedepens: pandoc-bin, ffmpeg
+    makedepens: pandoc, ffmpeg
     depends: gedit, kde
 
 
@@ -295,7 +304,7 @@ A fictional example of this file is:
 There are several options:
 
 **multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* *[--noclean]* project_folder  
-**multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* *[--noclean]* project_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
+**multipackager.py** *[--config config_file]* *[-r|--revision revision_number]* *[--noclean]* project_folder {debian|ubuntu|fedora|arch} version_name {i386|amd64}
 
 These two commands specifies to build packages for a project. The first one will
 build packages for the project stored at **project_folder**, and for all the OS
@@ -328,12 +337,16 @@ These virtual machines are useful to do manual compilation tests and other
 things, and they are created very fast (if they are already cached, of course).
 
 **multipackager.py** *[--config config_file]* update  
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch}  
+**multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch} version_name  
 **multipackager.py** *[--config config_file]* update {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
 
-These two commands allow to update the cached base systems, to ensure that they
+These four commands allow to update the cached base systems, to ensure that they
 have the last versions of the packages. The first one will update all the triplets
 stored in the default config file (or in the alternative **config_file**); the
-second one will update only the specified triplet.
+second one will update all the distros of the specific type; the third one will
+update all the architectures for the specified distro type and name. Finally, the
+fourth onne will update only the specified triplet.
 
 **multipackager.py** *[--config config_file]* clearcache  
 **multipackager.py** *[--config config_file]* clearcache {debian|ubuntu|fedora|arch} version_name {i386|amd64}  
