@@ -1,3 +1,6 @@
+* Version 0.31 (2017/11/26)
+   * Now does an 'apt update' before installing dependencies for a package
+   * Now doesn't wait for the user to press 'y' when installing meson
 * Version 0.30 (2017/01/22)
    * Added support for Meson builder projects
    * Allows to update in a single command all the distros based on the type (e.g. Update all debian distros)

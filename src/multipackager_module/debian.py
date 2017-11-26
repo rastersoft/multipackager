@@ -121,7 +121,7 @@ class debian (multipackager_module.package_base.package_base):
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
-        command = 'apt install meson ninja-build'
+        command = 'apt install meson ninja-build -y'
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
 
@@ -155,6 +155,10 @@ class debian (multipackager_module.package_base.package_base):
     @multipackager_module.package_base.call_with_cache
     def install_dependencies_full(self,path,dependencies):
 
+        retval = self.run_chroot(path,"apt update")
+        if (retval != 0):
+            return retval
+
         command = "apt install -y"
         for dep in dependencies:
             command += " "+dep
@@ -162,6 +166,10 @@ class debian (multipackager_module.package_base.package_base):
 
 
     def install_local_package_internal(self, file_name):
+
+        retval = self.run_chroot(path,"apt update")
+        if (retval != 0):
+            return True # error!!!!
 
         if 0 != self.run_chroot(self.working_path, "dpkg -i {:s}".format(file_name)):
             if 0 != self.run_chroot(self.working_path, "apt install -f -y"):
