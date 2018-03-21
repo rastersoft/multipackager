@@ -181,6 +181,7 @@ class debian (multipackager_module.package_base.package_base):
 
         """ Install the dependencies needed for building this package """
 
+        run_update = False
         dependencies = []
 
         if (os.path.exists(os.path.join(project_path,"setup.py"))): # it is a python package
@@ -232,9 +233,11 @@ class debian (multipackager_module.package_base.package_base):
                         if (pos != -1):
                             element = element[:pos]
                         list_p += " "+element
-                        command = "apt show {:s}".format(element)
+                        if not run_update:
+                            self.run_chroot(self.base_path, "apt update")
+                            run_update = True
+                        command = "apt install -y {:s}".format(element)
                         if (0 == self.run_chroot(self.base_path, command)):
-                            dependencies.append(element.strip())
                             found = True
                             break
                     if not found:
