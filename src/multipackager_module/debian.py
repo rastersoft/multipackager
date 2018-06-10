@@ -117,6 +117,10 @@ class debian (multipackager_module.package_base.package_base):
             f.write("deb http://archive.ubuntu.com/ubuntu/ {:s} main restricted universe multiverse\n".format(self.distro_name))
         f.close()
 
+        command = 'apt clean'
+        if (0 != self.run_chroot(tmp_path,command)):
+            return True # error!!!
+
         command = 'apt update'
         if (0 != self.run_chroot(tmp_path,command)):
             return True # error!!!
@@ -141,6 +145,10 @@ class debian (multipackager_module.package_base.package_base):
 
         # Here, we have for sure the CHROOT environment, but maybe it must be updated
 
+        retval = self.run_chroot(path,"apt clean")
+        if (retval != 0):
+            return True # error!!!!
+
         retval = self.run_chroot(path,"apt update")
         if (retval != 0):
             return True # error!!!!
@@ -155,6 +163,11 @@ class debian (multipackager_module.package_base.package_base):
     @multipackager_module.package_base.call_with_cache
     def install_dependencies_full(self,path,dependencies):
 
+        retval = self.run_chroot(path,"apt clean")
+        if (retval != 0):
+            return retval
+
+
         retval = self.run_chroot(path,"apt update")
         if (retval != 0):
             return retval
@@ -166,6 +179,10 @@ class debian (multipackager_module.package_base.package_base):
 
 
     def install_local_package_internal(self, file_name):
+
+        retval = self.run_chroot(path,"apt clean")
+        if (retval != 0):
+            return retval
 
         retval = self.run_chroot(path,"apt update")
         if (retval != 0):
@@ -234,6 +251,7 @@ class debian (multipackager_module.package_base.package_base):
                             element = element[:pos]
                         list_p += " "+element
                         if not run_update:
+                            self.run_chroot(self.base_path, "apt clean")
                             self.run_chroot(self.base_path, "apt update")
                             run_update = True
                         command = "apt install -y {:s}".format(element)

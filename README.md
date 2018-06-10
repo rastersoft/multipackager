@@ -357,7 +357,7 @@ specified in the config file, or an specific triplet.
 
 ## CONTACTING THE AUTHOR ##
 
-Sergio Costas Rodríguez (Raster Software Vigo)  
-raster@rastersoft.com  
+Sergio Costas Rodriguez  
 rastersoft@gmail.com  
-http://www.rastersoft.com
+http://www.rastersoft.com  
+https://gitlab.com/rastersoft/multipackager

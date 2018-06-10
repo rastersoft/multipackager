@@ -254,6 +254,7 @@ def launch_shell(argv,config):
         dtype = argv[3]
         name = argv[4]
         arch = argv[5]
+        sys.stdout.write("\x1b]2;"+_("Launched shell for {:s} {:s}, {:s}").format(dtype, name, arch)+"\x07")
         distroclass = get_distro_object(dtype)
         # create a DISTRO object of the right type
         distro = distroclass(config,dtype,name,arch)
@@ -317,6 +318,7 @@ def update_envs(argv,config):
         distro = distroclass(config,element["distro"],element["name"],element["architecture"],"builder")
         if distro.check_environment():
             continue
+        sys.stdout.write("\x1b]2;"+_("Updating {:s} {:s}, {:s}").format(element["distro"],element["name"],element["architecture"])+"\x07")
         # update the packages in the cached environment
         distro.update_environment()
 
